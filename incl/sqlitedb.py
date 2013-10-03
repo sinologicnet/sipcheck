@@ -43,10 +43,42 @@ class DB:
                 con.close()
 
     def GetTrys(self, ip):
-        print "Intentos por IP"
+	
+	con = None	
+
+	try:
+	    con = lite.connect(self.dbfile)
+	    
+	    cur = con.cursor()
+	    cur.execute("SELECT try from IPAS where ip = '"+ip+"'")
+
+	    data = cur.fetchone()
+	    print "Intentos: " + str(data[0])
+
+        except lite.Error, e:
+            print "Error %s:" % e.args[0]
+            sys.exit(1)
+
+        finally:
+            if con:
+                con.close()
 
     def CleanIP(self, ip):
-        print "Limpiando bbdd"
 
+        con = None
 
+        try:
+            con = lite.connect(self.dbfile)
+
+            cur = con.cursor()
+            cur.execute("DELETE from IPAS where ip = '"+ip+"'")
+            con.commit()
+
+        except lite.Error, e:
+            print "Error %s:" % e.args[0]
+            sys.exit(1)
+
+        finally:
+            if con:
+                con.close()
 
