@@ -9,9 +9,9 @@
 
 Solicitud de la lista de ips a banear
 
-007:  GET <COD> UPDATED						// Solicita lista pública y privada completa actualizada
-008:  GET <COD> FROM 1380882142					// Solicita lista pública y privada completa desde el tiempo unix 1380882142
-009:  GET <COD> TO 1380882142					// Solicita lista pública y privada completa hasta el tiempo unix 1380882142
+007:  GET <COD> UPDATED							// Solicita lista pública y privada completa actualizada
+008:  GET <COD> FROM 1380882142						// Solicita lista pública y privada completa desde el tiempo unix 1380882142
+009:  GET <COD> TO 1380882142						// Solicita lista pública y privada completa hasta el tiempo unix 1380882142
 
 Envío de una IP o una lista de IP al cliente
 
@@ -33,8 +33,12 @@ Envío de una IP recien detectada al servidor
 
 El servidor tiene actualizaciones, vamos a actualizar tus datos...
 
-022:				PUSH UPDATED			// Pídeme la lista pública y privada completa actualizada (tengo pescado fresco!!!) (volvemos a enviar 007)
-023:				PUSH FROM 1380882142		// Pídeme la lista pública y privada completa actualizada desde el tiempo unix 1380882142 (volvemos a enviar 008)
-024:				PUSH TO 1380882142		// Pídeme la lista pública y privada completa actualizada hasta el tiempo unix 1380882142 (volvemos a enviar 009)
+022:				PUSH UPDATED				// Pídeme la lista pública y privada completa actualizada (tengo pescado fresco!!!) (volvemos a enviar 007)
+023:				PUSH FROM 1380882142			// Pídeme la lista pública y privada completa actualizada desde el tiempo unix 1380882142 (volvemos a enviar 008)
+024:				PUSH TO 1380882142			// Pídeme la lista pública y privada completa actualizada hasta el tiempo unix 1380882142 (volvemos a enviar 009)
 
+Si no hay movimiento... necesitamos un PING para refrescar la conexión
+
+025:  PING <COD> 1380882142						// Refresca mi estado a las  1380882142
+026:				PONG <COD>				// Refrescado el estado
 
