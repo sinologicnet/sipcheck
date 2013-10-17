@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+    Testing server control connection.
+    Testing protocol_v1
+"""
 
 import SocketServer, sys, time, base64 
 from threading import Thread
