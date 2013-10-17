@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
     Testing control connection with server.
-             
+    Testing protocol_v1             
 """
 import socket
 import sys
