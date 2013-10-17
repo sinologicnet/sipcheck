@@ -13,13 +13,14 @@ class SingleTCPHandler(SocketServer.BaseRequestHandler):
         login = False
 
         while True:
-            reply = None
-            data  = None
-            
+            reply  = None
+            data   = None
+            parsed = None 
             try:
-                data  = self.request.recv(1024)
-                data  = data.replace('\r', '')
-                data  = data.replace('\n', '')
+                data   = self.request.recv(1024)
+                data   = data.replace('\r', '')
+                data   = data.replace('\n', '')
+                parsed = self.parse_data(data, code)
             except:
                 pass
 
@@ -27,16 +28,8 @@ class SingleTCPHandler(SocketServer.BaseRequestHandler):
                 reply = "HELO " + code + "\n"
 
             elif "PING" in data:
-                if " " in data: 
-                    coderecv = data.split(" ")[1]
-
-                    if coderecv == code:              
-                        reply = "PONG " + code + "\n"
-                
-                    else:
-                        self.request.send("ERROR: BAD PING!\n")
-                        self.request.close()
-                        break
+                if parsed != "ERROR":
+                    reply = "PONG " + code + "\n"
                 else:
                     self.request.send("ERROR: BAD PING!\n")
                     self.request.close()
@@ -46,69 +39,56 @@ class SingleTCPHandler(SocketServer.BaseRequestHandler):
                 self.request.send("BYE BYE!\n")
                 self.request.close()
                 break
-
-            elif "USER"  in data:
-                if " " in data:
-                    coderecv = data.split(" ")[1]
-
-                    if coderecv == code:
-                        user = data.split(" ")[2]
-
-                    else:
-                        self.request.send("ERROR: BAD COMMAND!\n")
-                        self.request.close()
-                        break
+            
+            elif "USER" in data:
+                if parsed != "ERROR":
+                    user = parsed[2]
                 else:
-                    self.request.send("ERROR: BAD COMMAND!\n")
+                    self.request.send("ERROR: BAD PING!\n")
                     self.request.close()
                     break
 
-            elif "PASS" in data and user is not None:
-                if " " in data:
-                    coderecv = data.split(" ")[1]
-                    passw    = data.split(" ")[2]
-
-                    if coderecv == code:
-                        #Comprobar user/pass
-                        reply = "OK " + code + " " + user + "\n"
-                        login = True
-
-                    else:
-                        self.request.send("ERROR: BAD COMMAND!\n")
-                        self.request.close()
-                        break
+            elif "PASS" in data:
+                if parsed != "ERROR":
+                    #DB validate user:pass
+                    passw = parsed[2]
+                    reply = "OK " + code + " " + user + "\n"
+                    login = True
                 else:
-                    self.request.send("ERROR: BAD COMMAND!\n")
+                    self.request.send("ERROR: BAD PING!\n")
                     self.request.close()
                     break
 
             elif "GET" in data:
                 if login == True:
-                    if " " in data:
-                        coderecv = data.split(" ")[1]
- 
-                        if coderecv == code:
-                            reply = "GEEET!!!\n"
-
-                        else:
-                            self.request.send("ERROR: BAD COMMAND!\n")
-                            self.request.close()
-                            break
+                    if parsed != "ERROR":
+                        #Process command from GET
+                        reply = "GEEET!!!\n"
                     else:
-                        self.request.send("ERROR: BAD COMMAND!\n")
+                        self.request.send("ERROR: BAD PING!\n")
                         self.request.close()
                         break
                 else:
-                    self.request.send("NEED AUTH!\n")
+                    self.request.send("ERROR: NEED AUTH!\n")
                     self.request.close()
                     break
-
-
+           
             if reply is not None:
                 self.request.send(reply)
 
     def hashcode(self):
         return base64.b64encode(str(time.time()))
+
+    def parse_data(self, cadena, traza):
+        if " " in cadena:
+            coderecv = cadena.split(" ")
+
+            if coderecv[1] == traza:
+                return coderecv
+            else:
+                return "ERROR"
+        else:
+            return "ERROR"
 
 class SimpleServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     # Ctrl-C will cleanly kill all spawned threads
