@@ -33,8 +33,12 @@ try:
         code = data.split(" ")[1]
     
     # Send login 
-    message = 'USER '+code+' usuario\r\nPASS '+code+' clave\r\n'
-    print >>sys.stderr, 'login on %s port %s' % server_address
+    message = 'USER '+code+' usuario\r\n'
+    print >>sys.stderr, 'sending login on %s port %s' % server_address
+    sock.sendall(message)
+
+    message = 'PASS '+code+' clave\r\n'
+    print >>sys.stderr, 'sending password on %s port %s' % server_address
     sock.sendall(message)
 
     # Wait for login confirmation 
