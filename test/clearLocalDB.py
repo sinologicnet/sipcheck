@@ -16,7 +16,9 @@ def go():
     confirm="?"
     while confirm.lower() != "y" and confirm.lower() != "n":
 	confirm=raw_input("Are you sure that you want clean all ip banned from your local database? [y|n]")
-
+	print "All ip banned into local database are cleaned"
+	db.sql("DELETE FROM banned")
+    
 
 
 

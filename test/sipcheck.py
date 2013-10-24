@@ -49,10 +49,15 @@ class SIPCheck(object):
 		suspectIP=""
 		if "wrong password" in line.lower():
 		    ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', line )
-		    suspectIP = ip[1]
 		elif "rejected" in line.lower():
 		    ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', line )
+
+		if len(ip) > 1:
+		    suspectIP = ip[1]
+		elif len(ip) > 0:
 		    suspectIP = ip[0]
+		else:
+		    suspectIP = ""
 
 		return suspectIP
 

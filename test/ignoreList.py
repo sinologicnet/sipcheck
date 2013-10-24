@@ -11,16 +11,19 @@ class IgnoreList:
 
 
     def isInList(self,ip):
-	nip=self.dottedQuadToNum(ip)
-	estaEnLaLista=False
-	for red in self.data:
-	    nnet=red.split("/")
-	    netw=nnet[0]
-	    mask=nnet[1]
-	    netmask=self.networkMask(str(netw),int(mask))
-	    if self.addressInNetwork(nip,netmask):
-		estaEnLaLista=True
-		print "Dirección IP",ip,"está en la lista blanca"
+	try:
+	    nip=self.dottedQuadToNum(ip)
+	    estaEnLaLista=False
+	    for red in self.data:
+		nnet=red.split("/")
+		netw=nnet[0]
+		mask=nnet[1]
+		netmask=self.networkMask(str(netw),int(mask))
+		if self.addressInNetwork(nip,netmask):
+		    estaEnLaLista=True
+		    print "Dirección IP",ip,"está en la lista blanca"
+	except:
+	    estaEnLaLista=False
 	return estaEnLaLista
 
     """
