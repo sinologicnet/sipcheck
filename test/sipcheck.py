@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/python -B
 # -*- coding: utf-8 -*-
 
 import configOptionsParser,iptablesController,sqlitedb
-import time
+import time,sys
 
 def databaseUpdate():
   print "::databaseUpdate::"
@@ -19,14 +19,10 @@ def go():
 #    iptables.show()
     
     db=sqlitedb.DB()
-    comandoSQL="INSERT INTO banned (ip) VALUES (\"90.90.90.90\");"
-    print comandoSQL
-    print db.sql(comandoSQL)
-#    print db.sql("SELECT * FROM banned;")
-    
-    #db.sql("CREATE TABLE test1 (id INT PRIMARY KEY NOT NULL, ip VARCHAR(50))")
+    now=time.time()
 
     # Check database to get the date of the last syncronization
+    db.InsertIP("90.90.90.90")
 
     # If we aren't updated, we try connect to www.sinologic.net:6969 and ask for updated database that update to our local database
 

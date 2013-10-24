@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python -B
 # -*- coding: UTF-8 -*-
 
 import sqlite3 as lite
@@ -8,26 +8,19 @@ import time
 class DB:
 
     def __init__(self):
+	''' Constructor of the class '''
 	self.dbfile = 'sipcheck.db'
-	
-	'''
-	    Table: banned
-	    Fields:
-		id INTEGER PRIMARY KEY AUTOINCREMENT
-		ip CHAR(50)
-		try INTEGER
-		date DATETIME
-		block INTEGER
-	'''
-	
+
 
     def sql(self,sql):
+	''' Method to connect and execute some SQL sentence '''
 	con = None
 	data= None
 	try: 
 	    con = lite.connect(self.dbfile)
 	    cur = con.cursor()
 	    cur.execute(sql)
+	    con.commit()
 	    data = cur.fetchall()
 	except lite.Error, e:
 	    print "Error %s:" % e.args[0]
@@ -39,14 +32,31 @@ class DB:
 	return data
 
 
-
-
     def showTables(self):
-	''' Método para mostrar todas las tablas de la base de datos '''
+	''' Method to show all tables of the database '''
 	print self.sql("SELECT name FROM sqlite_master WHERE type = 'table'")
-
 
 
     def showTable(self,table):
 	print self.sql("PRAGMA table_info("+str(table)+")")
+
+
+    def InsertIP(self,ip):
+	''' Method to insert the IP into the table of banned ips '''
+	existe=self.sql("SELECT * FROM banned WHERE ip='"+ip+"'")
+	now=time.strftime('%Y-%m-%d %H:%M:%S')
+	if len(existe) == 0:
+	    existe=self.sql("INSERT INTO banned (ip,date,try,block) VALUES ('"+ip+"','"+str(now)+"',0,0)")
+	else:
+	    trys=int(existe[0][3])+1
+	    blocks=int(existe[0][4])
+	    existe=self.sql("UPDATE banned SET date='"+str(now)+"', try="+str(trys)+", block="+str(blocks)+" WHERE ip='"+ip+"'")
+
+
+
+    def DeleteIP(self,ip):
+	''' Method to delete the record of one banned ip '''
+	existe=self.sql("SELECT * FROM banned WHERE ip='"+ip+"'")
+	if len(existe) >= 0:
+	    existe=self.sql("DELETE banned WHERE '"+ip+"'")
 
