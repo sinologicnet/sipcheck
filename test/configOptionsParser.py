@@ -14,6 +14,11 @@ class ConfigFile:
 
 	    self.messagefile=config._sections['general']['messagefile']
 	    self.debug=config._sections['general']['debug']
+	    self.minticks=config._sections['general']['minticks']
+	    if "yes" in config._sections['general']['useiptables'].lower():
+		self.iptables=True
+	    else:
+		self.iptables=False
 
 	except KeyError:
 	  print "Fatal Error: messagefile parameter not found in",archivo

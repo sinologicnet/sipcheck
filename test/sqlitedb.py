@@ -37,20 +37,30 @@ class DB:
 	print self.sql("SELECT name FROM sqlite_master WHERE type = 'table'")
 
 
+
     def showTable(self,table):
 	print self.sql("PRAGMA table_info("+str(table)+")")
+
+
+
+    def ShowIP(self):
+	print self.sql("SELECT * FROM banned")
+
+
 
 
     def InsertIP(self,ip):
 	''' Method to insert the IP into the table of banned ips '''
 	existe=self.sql("SELECT * FROM banned WHERE ip='"+ip+"'")
 	now=time.strftime('%Y-%m-%d %H:%M:%S')
+	tries=1;
 	if len(existe) == 0:
-	    existe=self.sql("INSERT INTO banned (ip,date,try,block) VALUES ('"+ip+"','"+str(now)+"',0,0)")
+	    existe=self.sql("INSERT INTO banned (ip,date,try,block) VALUES ('"+ip+"','"+str(now)+"',"+str(tries)+",0)")
 	else:
-	    trys=int(existe[0][3])+1
+	    tries=int(existe[0][3])+1
 	    blocks=int(existe[0][4])
-	    existe=self.sql("UPDATE banned SET date='"+str(now)+"', try="+str(trys)+", block="+str(blocks)+" WHERE ip='"+ip+"'")
+	    existe=self.sql("UPDATE banned SET date='"+str(now)+"', try="+str(tries)+", block="+str(blocks)+" WHERE ip='"+ip+"'")
+	return tries
 
 
 

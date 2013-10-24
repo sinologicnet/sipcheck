@@ -1,41 +1,65 @@
 #!/usr/bin/python -B
 # -*- coding: utf-8 -*-
 
-import configOptionsParser,iptablesController,sqlitedb
-import time,sys
+import configOptionsParser,iptablesController,sqlitedb,ignoreList
+import time,sys,os,re
 
-def databaseUpdate():
-  print "::databaseUpdate::"
 
-def go():
-    config=configOptionsParser.ConfigFile("sipcheck.conf")
+class SIPCheck(object):
+    def __init__(self):
 
-    # Initialize iptables object with the ip list that we are going to ban
-    iptables=iptablesController.IPTables()
+	# Inicialize sipcheck configuration file
+	self.config=configOptionsParser.ConfigFile("sipcheck.conf")
 
-#    iptables.banip("10.0.0.1")
-#    iptables.show()
-#    iptables.unbanip("10.0.0.1")
-#    iptables.show()
-    
-    db=sqlitedb.DB()
-    now=time.time()
+	# Initialize iptables object with the ip list that we are going to ban
+	self.iptables=iptablesController.IPTables()
 
-    # Check database to get the date of the last syncronization
-    db.InsertIP("90.90.90.90")
+	# Initialize database object to load ip list to ban
+	self.db=sqlitedb.DB()
 
-    # If we aren't updated, we try connect to www.sinologic.net:6969 and ask for updated database that update to our local database
+	# Inicialize list of host and networks to ignore
+	self.ignoreList=ignoreList.IgnoreList("sipcheck.ignore")
 
-    # We need clear all our firewall from the ips of the local database to avoid repeat ip entries
+	#Process Asterisk message file...
+	while True:
+	    ip=self.processFile()
+	    if not self.ignoreList.isInList(ip):
+		tries=self.db.InsertIP(ip)
+		if tries > self.config.minticks and tries <= self.config.minticks+1 :
+		    print "Baneamos la IP",ip
+#		    self.iptables.banip(ip)
 
-    # Once updated, we open /var/log/asterisk/message file that comes from 'config['messagefile'] and read continuously looking for tryings and wrong passwords
-    #messagefile=config['messagefile']
-    #(messagefile)
+    def processFile(self):
+	self.file = open(self.config.messagefile, 'r')
+	st_results = os.stat(self.config.messagefile)
+	st_size = st_results[6]
+	if st_size > 5000:
+	    st_size = st_size-5000
+
+	self.file.seek(st_size)
+
+	while True:
+	    where = self.file.tell()
+	    line  = self.file.readline()
+	    process = False
+	    if not line:
+		time.sleep(0.2)
+		self.file.seek(where)
+	    else:
+		suspectIP=""
+		if "wrong password" in line.lower():
+		    ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', line )
+		    suspectIP = ip[1]
+		elif "rejected" in line.lower():
+		    ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', line )
+		    suspectIP = ip[0]
+
+		return suspectIP
 
 
 if __name__ == '__main__':
   try:
-	go()
+    sipcheck=SIPCheck()
   except KeyboardInterrupt:
 	print "Exit"
 	exit(1)
