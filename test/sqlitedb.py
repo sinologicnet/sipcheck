@@ -62,6 +62,19 @@ class DB:
 	    existe=self.sql("UPDATE banned SET date='"+str(now)+"', try="+str(tries)+", block="+str(blocks)+" WHERE ip='"+ip+"'")
 	return tries
 
+    def BlockIP(self,ip):
+	''' Method to insert the IP into the table of banned ips '''
+	existe=self.sql("SELECT * FROM banned WHERE ip='"+ip+"'")
+	now=time.strftime('%Y-%m-%d %H:%M:%S')
+	tries=1;
+	if len(existe) == 0:
+	    existe=self.sql("INSERT INTO banned (ip,date,try,block) VALUES ('"+ip+"','"+str(now)+"',"+str(tries)+",1)")
+	else:
+	    tries=int(existe[0][3])+1
+	    blocks=int(existe[0][4])+1
+	    existe=self.sql("UPDATE banned SET date='"+str(now)+"', try="+str(tries)+", block="+str(blocks)+" WHERE ip='"+ip+"'")
+	return tries
+
 
 
     def DeleteIP(self,ip):

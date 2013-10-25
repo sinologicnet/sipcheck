@@ -25,8 +25,9 @@ class SIPCheck(object):
 	    ip=self.processFile()
 	    if not self.ignoreList.isInList(ip):
 		tries=self.db.InsertIP(ip)
-		if tries > self.config.minticks and tries <= self.config.minticks+1 :
+		if tries > self.config.minticks:
 		    print "Baneamos la IP",ip
+		    self.db.BlockIP(ip)
 #		    self.iptables.banip(ip)
 
 
