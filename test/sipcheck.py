@@ -29,7 +29,10 @@ class SIPCheck(object):
 		    print "Baneamos la IP",ip
 #		    self.iptables.banip(ip)
 
+
+
     def processFile(self):
+	''' Method to read last lines of the message file and returns the attacker ip address '''
 	self.file = open(self.config.messagefile, 'r')
 	st_results = os.stat(self.config.messagefile)
 	st_size = st_results[6]
@@ -43,13 +46,16 @@ class SIPCheck(object):
 	    line  = self.file.readline()
 	    process = False
 	    if not line:
-		time.sleep(0.2)
+		time.sleep(0.1)
 		self.file.seek(where)
 	    else:
 		suspectIP=""
+		ip=()
 		if "wrong password" in line.lower():
 		    ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', line )
 		elif "rejected" in line.lower():
+		    ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', line )
+		elif "no matching peer found" in line.lower():
 		    ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', line )
 
 		if len(ip) > 1:

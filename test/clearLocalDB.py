@@ -1,6 +1,11 @@
 #!/usr/bin/python -B
 # -*- coding: utf-8 -*-
 
+"""
+    This application is used to delete all entries of local database of ip banned
+"""
+
+
 import configOptionsParser,iptablesController,sqlitedb
 import time,sys,os,re
 
