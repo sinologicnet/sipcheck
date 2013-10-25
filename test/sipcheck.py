@@ -23,7 +23,7 @@ class SIPCheck(object):
 	#Process Asterisk message file...
 	while True:
 	    ip=self.processFile()
-	    if not self.ignoreList.isInList(ip):
+	    if ip != "" and not self.ignoreList.isInList(ip):
 		tries=self.db.InsertIP(ip)
 		if tries > self.config.minticks:
 		    print "Baneamos la IP",ip

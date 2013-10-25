@@ -55,7 +55,7 @@ class DB:
 	now=time.strftime('%Y-%m-%d %H:%M:%S')
 	tries=1;
 	if len(existe) == 0:
-	    existe=self.sql("INSERT INTO banned (ip,date,try,block) VALUES ('"+ip+"','"+str(now)+"',"+str(tries)+",0)")
+	    existe=self.sql("INSERT INTO banned (ip,date,try,block) VALUES ('"+str(ip)+"','"+str(now)+"',"+str(tries)+",0)")
 	else:
 	    tries=int(existe[0][3])+1
 	    blocks=int(existe[0][4])
@@ -68,7 +68,7 @@ class DB:
 	now=time.strftime('%Y-%m-%d %H:%M:%S')
 	tries=1;
 	if len(existe) == 0:
-	    existe=self.sql("INSERT INTO banned (ip,date,try,block) VALUES ('"+ip+"','"+str(now)+"',"+str(tries)+",1)")
+	    existe=self.sql("INSERT INTO banned (ip,date,try,block) VALUES ('"+str(ip)+"','"+str(now)+"',"+str(tries)+",1)")
 	else:
 	    tries=int(existe[0][3])+1
 	    blocks=int(existe[0][4])+1
@@ -79,7 +79,7 @@ class DB:
 
     def DeleteIP(self,ip):
 	''' Method to delete the record of one banned ip '''
-	existe=self.sql("SELECT * FROM banned WHERE ip='"+ip+"'")
-	if len(existe) >= 0:
-	    existe=self.sql("DELETE banned WHERE '"+ip+"'")
-
+	existe=self.sql("SELECT * FROM banned WHERE ip='"+str(ip)+"'")
+	if len(existe) > 0:
+	    existe=self.sql("DELETE FROM banned WHERE ip='"+str(ip)+"'")
+	    return True
