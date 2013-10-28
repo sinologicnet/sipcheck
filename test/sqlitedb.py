@@ -47,7 +47,7 @@ class DB:
 	print self.sql("SELECT * FROM banned")
 
     def ShowBlocked(self):
-	return self.sql("SELECT * FROM banned WHERE block=1")
+	return self.sql("SELECT * FROM banned WHERE block>0")
 
 
 

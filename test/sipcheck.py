@@ -19,10 +19,10 @@ class SIPCheck(object):
 	self.db=sqlitedb.DB()
 
 	listaIP=self.db.ShowBlocked()
-	print listaIP
-	for t in self.db.ShowBlocked():
-	    print "Initialize list of banned ip with",t
-	    self.iptables.listaIP.append(t)
+	if len(listaIP) > 0:
+	    for t in self.db.ShowBlocked():
+		print "Initialize list of banned ip with",t
+		self.iptables.listaIP.append(t)
 
 	# Inicialize list of host and networks to ignore
 	self.ignoreList=ignoreList.IgnoreList("sipcheck.ignore")

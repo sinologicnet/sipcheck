@@ -42,7 +42,8 @@ def go():
 		print "There aren't ip address on the list"
 	    else:
 		for t in lista:
-		    print str(t[1]),"\t",str(t[2])
+		    print "    IP    \t    DATE    \t      TRY \t BLOCKED"
+		    print str(t[1]),"\t",str(t[2]),"\t",str(t[3]),"\t",str(t[4])
 
 	elif option.lower() == "c":
 	    confirm=raw_input("Enter the IP address to remove of your ban list:")
