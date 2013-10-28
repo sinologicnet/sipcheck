@@ -20,7 +20,6 @@ class IPTables(object):
     def __init__(self):
 	''' constructor que no hace nada '''
 
-
     def banip(self,ip):
 	''' Method to insert one IP address into the IPTables to ban some traffic comes from it. '''
 	if ip not in self.listaIP:

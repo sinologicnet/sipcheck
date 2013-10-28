@@ -6,6 +6,7 @@ import time,sys,os,re
 
 
 class SIPCheck(object):
+
     def __init__(self):
 
 	# Inicialize sipcheck configuration file
@@ -17,18 +18,24 @@ class SIPCheck(object):
 	# Initialize database object to load ip list to ban
 	self.db=sqlitedb.DB()
 
+	listaIP=self.db.ShowBlocked()
+	print listaIP
+	for t in self.db.ShowBlocked():
+	    print "Initialize list of banned ip with",t
+	    self.iptables.listaIP.append(t)
+
 	# Inicialize list of host and networks to ignore
 	self.ignoreList=ignoreList.IgnoreList("sipcheck.ignore")
 
 	#Process Asterisk message file...
 	while True:
 	    ip=self.processFile()
-	    if ip != "" and not self.ignoreList.isInList(ip):
+	    if ip != "" and not self.ignoreList.isInList(ip) and ip not in self.iptables.listaIP:
 		tries=self.db.InsertIP(ip)
-		if tries > self.config.minticks:
+		if tries > int(self.config.minticks):
 		    print "Baneamos la IP",ip
 		    self.db.BlockIP(ip)
-#		    self.iptables.banip(ip)
+		    self.iptables.banip(ip)
 
 
 

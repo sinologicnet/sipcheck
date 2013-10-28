@@ -37,9 +37,12 @@ def go():
 		db.sql("DELETE FROM banned")
 
 	elif option.lower() == "b":
-	    lista=db.sql("SELECT * FROM banned")
-	    for t in lista:
-		print str(t[1]),"\t",str(t[2])
+	    lista=db.sql("SELECT * FROM banned WHERE block != 0")
+	    if len(lista) == 0:
+		print "There aren't ip address on the list"
+	    else:
+		for t in lista:
+		    print str(t[1]),"\t",str(t[2])
 
 	elif option.lower() == "c":
 	    confirm=raw_input("Enter the IP address to remove of your ban list:")

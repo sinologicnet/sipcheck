@@ -46,6 +46,9 @@ class DB:
     def ShowIP(self):
 	print self.sql("SELECT * FROM banned")
 
+    def ShowBlocked(self):
+	return self.sql("SELECT * FROM banned WHERE block=1")
+
 
 
 
