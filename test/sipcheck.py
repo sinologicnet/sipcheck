@@ -1,6 +1,19 @@
 #!/usr/bin/python -B
 # -*- coding: utf-8 -*-
 
+""" sipcheck.py: Core of the sipcheck application."""
+
+__author__ = "Elio Rojano, Sergio Cotelo, Javier Vidal"
+__copyright__ = "Copyright 2013, Sinologic.net"
+__credits__ = ["Saúl Ibarra"]
+__license__ = "GPL"
+__version__ = "2.0"
+__maintainer__ = "Elio Rojano"
+__date__ = "2013-10-25"
+__email__ = "sipcheck@sinologic.net"
+__status__ = "Production"
+
+
 import configOptionsParser,iptablesController,sqlitedb,ignoreList
 import time,sys,os,re
 
@@ -22,9 +35,14 @@ class SIPCheck(object):
 	# Inicialize list of host and networks to ignore
 	self.ignoreList=ignoreList.IgnoreList("sipcheck.ignore")
 
+	LEVELS = {'4': logging.DEBUG,'3': logging.INFO,'2': logging.WARNING,'1': logging.ERROR,'0': logging.CRITICAL}
+	level = LEVELS.get(self.config.debug, logging.NOTSET)
+
+	logging.basicConfig(filename=self.config.logfile,level=level)
 
 
     def run(self):
+
 	# At self.iptables.listaIP we have all ip address banned (from sipcheck or other way)
 	listaTBIP=self.iptables.listaIP
 
@@ -35,17 +53,14 @@ class SIPCheck(object):
 	for dbip in listaDBIP:
 	    if dbip not in listaTBIP:
 		self.iptables.banip(dbip)
-		print "Añadida la IP",dbip,"en la tabla iptables"
 
 
 	#Process Asterisk message file...
-	print "Examinamos los mensajes de Asterisk..."
 	while True:
 	    ip=self.processFile()
 	    if ip != "" and not self.ignoreList.isInList(ip) and ip not in self.iptables.listaIP:
 		tries=self.db.InsertIP(ip)
 		if tries > int(self.config.minticks):
-		    print "Baneamos la IP",ip
 		    self.db.BlockIP(ip)
 		    self.iptables.banip(ip)
 
@@ -72,10 +87,13 @@ class SIPCheck(object):
 		suspectIP=""
 		ip=()
 		if "wrong password" in line.lower():
+		    logging.debug("Detectado intento de registro con contraseña fallida:", line)
 		    ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', line )
 		elif "rejected" in line.lower():
+		    logging.debug("Detectado intento de llamada no autentificada:", line)
 		    ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', line )
 		elif "no matching peer found" in line.lower():
+		    logging.debug("Detectado intento de registro a usuario invalido:", line)
 		    ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', line )
 
 		if len(ip) > 1:
@@ -98,7 +116,6 @@ class SIPCheck(object):
 	for dbip in listaDBIP:
 	    if dbip in listaTBIP:
 		self.iptables.unbanip(dbip)
-		print "Eliminada la IP",dbip,"de la tabla iptables"
 
 
 

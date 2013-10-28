@@ -1,6 +1,7 @@
 #!/usr/bin/env python -B
 # -*- coding: utf-8 -*-
 
+
 import ConfigParser,os
 
 class ConfigFile:
@@ -13,10 +14,10 @@ class ConfigFile:
 	try:
 
 	    self.messagefile=config._sections['general']['messagefile']
-	    print "--"+self.messagefile+"--"
 	    self.debug=config._sections['general']['debug']
 	    self.minticks=config._sections['general']['minticks']
 	    self.messagebuffer=config._sections['general']['messagebuffer']
+	    self.logfile=config._sections['general']['logfile']
 	    if "yes" in config._sections['general']['useiptables'].lower():
 		self.iptables=True
 	    else:

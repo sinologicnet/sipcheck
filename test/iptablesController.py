@@ -22,16 +22,10 @@ class IPTables(object):
 	''' constructor que no hace nada '''
 
 	# Vamos a consultar qué direcciones IP tenemos en el firewall
-	outfd = open('/tmp/iptables.tmp', 'w+')
-	errfd = open('/tmp/iptables.tmp.err', 'w+')
-	subprocess.call(['iptables', '-L', '-n'], stdout=outfd, stderr=errfd)
-	outfd.close()
-	errfd.close()
-	fd = open('/tmp/iptables.tmp', 'r')
-	output = fd.read()
-	fd.close()
-	for line in output.split("\n"):
-	    if "DROP" in line:
+	proc = subprocess.Popen(['iptables', '-L', '-n'],stdout=subprocess.PIPE)
+	for line in proc.stdout:
+	    line = line.strip()
+	    if "DROP" in line.split("\n"):
 		ips=re.findall( r'[0-9]+(?:\.[0-9]+){3}', line)
 		ip=ips[0]
 		# Metemos las entradas del firewall en la lista
@@ -60,7 +54,7 @@ class IPTables(object):
 
     def show(self):
 	''' Show the IPTables '''
-	comando=self.iptables+" -L"
+	comando=self.iptables+" -L -n"
 	os.system(comando)
 
     def getList(self):
