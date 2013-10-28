@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
+import subprocess
+import os,re
 
 """
     Clase que permite gestionar unas acciones básicas del firewall mediante IPTables
@@ -20,18 +21,33 @@ class IPTables(object):
     def __init__(self):
 	''' constructor que no hace nada '''
 
+	# Vamos a consultar qué direcciones IP tenemos en el firewall
+	outfd = open('/tmp/iptables.tmp', 'w+')
+	errfd = open('/tmp/iptables.tmp.err', 'w+')
+	subprocess.call(['iptables', '-L', '-n'], stdout=outfd, stderr=errfd)
+	outfd.close()
+	errfd.close()
+	fd = open('/tmp/iptables.tmp', 'r')
+	output = fd.read()
+	fd.close()
+	for line in output.split("\n"):
+	    if "DROP" in line:
+		ips=re.findall( r'[0-9]+(?:\.[0-9]+){3}', line)
+		ip=ips[0]
+		# Metemos las entradas del firewall en la lista
+		self.listaIP.append(ip)
+
     def banip(self,ip):
 	''' Method to insert one IP address into the IPTables to ban some traffic comes from it. '''
-	if ip not in self.listaIP:
-	    comando=self.iptables+" -A INPUT -s "+ip+" -j DROP"
-	    os.system(comando)
-	    self.listaIP.append(ip)
+	comando=self.iptables+" -A INPUT -s "+ip+" -j DROP"
+	os.system(comando)
+	self.listaIP.append(ip)
 
     def unbanip(self,ip):
 	''' Method to delete of the IPTables one IP address banned previously '''
+	comando=self.iptables+" -D INPUT -s "+ip+" -j DROP"
+	os.system(comando);
 	if ip in self.listaIP:
-	    comando=self.iptables+" -D INPUT -s "+ip+" -j DROP"
-	    os.system(comando);
 	    self.listaIP.remove(ip)
 
     def unbanall(self):
@@ -39,7 +55,8 @@ class IPTables(object):
 	for ip in self.listaIP:
 	    comando=self.iptables+" -D INPUT -s "+ip+" -j DROP"
 	    os.system(comando)
-	    self.listaIP.remove(ip)
+	    if ip in self.listaIP:
+		self.listaIP.remove(ip)
 
     def show(self):
 	''' Show the IPTables '''

@@ -13,21 +13,33 @@ class SIPCheck(object):
 	self.config=configOptionsParser.ConfigFile("sipcheck.conf")
 
 	# Initialize iptables object with the ip list that we are going to ban
+	# Parser iptables entries and insert into our local database
 	self.iptables=iptablesController.IPTables()
 
 	# Initialize database object to load ip list to ban
 	self.db=sqlitedb.DB()
 
-	listaIP=self.db.ShowBlocked()
-	if len(listaIP) > 0:
-	    for t in self.db.ShowBlocked():
-		print "Initialize list of banned ip with",t
-		self.iptables.listaIP.append(t)
-
 	# Inicialize list of host and networks to ignore
 	self.ignoreList=ignoreList.IgnoreList("sipcheck.ignore")
 
+
+
+    def run(self):
+	# At self.iptables.listaIP we have all ip address banned (from sipcheck or other way)
+	listaTBIP=self.iptables.listaIP
+
+	# We get all entries blocked into our local database
+	listaDBIP=self.db.ShowBlocked()
+
+	# Each IP into database we must check if exists into iptables list
+	for dbip in listaDBIP:
+	    if dbip not in listaTBIP:
+		self.iptables.banip(dbip)
+		print "Añadida la IP",dbip,"en la tabla iptables"
+
+
 	#Process Asterisk message file...
+	print "Examinamos los mensajes de Asterisk..."
 	while True:
 	    ip=self.processFile()
 	    if ip != "" and not self.ignoreList.isInList(ip) and ip not in self.iptables.listaIP:
@@ -44,8 +56,8 @@ class SIPCheck(object):
 	self.file = open(self.config.messagefile, 'r')
 	st_results = os.stat(self.config.messagefile)
 	st_size = st_results[6]
-	if st_size > 5000:
-	    st_size = st_size-5000
+	if st_size > self.config.messagebuffer:
+	    st_size=st_size-self.config.messagebuffer
 
 	self.file.seek(st_size)
 
@@ -75,10 +87,26 @@ class SIPCheck(object):
 
 		return suspectIP
 
+    def exit(self):
+	# At self.iptables.listaIP we have all ip address banned (from sipcheck or other way)
+	listaTBIP=self.iptables.listaIP
+
+	# We get all entries blocked into our local database
+	listaDBIP=self.db.ShowBlocked()
+
+	# Each IP into database we must check if exists into iptables list
+	for dbip in listaDBIP:
+	    if dbip in listaTBIP:
+		self.iptables.unbanip(dbip)
+		print "Eliminada la IP",dbip,"de la tabla iptables"
+
+
 
 if __name__ == '__main__':
-  try:
     sipcheck=SIPCheck()
-  except KeyboardInterrupt:
+    try:
+	sipcheck.run()
+    except KeyboardInterrupt:
+	sipcheck.exit()
 	print "Exit"
 	exit(1)

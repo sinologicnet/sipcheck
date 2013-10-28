@@ -46,11 +46,11 @@ def go():
 		    print str(t[1]),"\t",str(t[2]),"\t",str(t[3]),"\t",str(t[4])
 
 	elif option.lower() == "c":
-	    confirm=raw_input("Enter the IP address to remove of your ban list:")
+	    confirm=raw_input("Enter the IP address to remove of your ban list: ")
 	    if db.DeleteIP(confirm):
 		print "IP address",confirm,"has been deleted of the local database"
 	    else:
-		print "IP address",confirm,"not found in local database"
+		print "IP address \""+confirm+"\" not found in local database"
 
 	print ""
 

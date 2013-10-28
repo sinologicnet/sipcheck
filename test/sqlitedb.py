@@ -47,7 +47,11 @@ class DB:
 	print self.sql("SELECT * FROM banned")
 
     def ShowBlocked(self):
-	return self.sql("SELECT * FROM banned WHERE block>0")
+	test=self.sql("SELECT * FROM banned WHERE block>0")
+	tupla=[]
+	for t in test:
+	    tupla.append(str(t[1]))
+	return tupla
 
 
 
