@@ -13,8 +13,10 @@ class ConfigFile:
 	try:
 
 	    self.messagefile=config._sections['general']['messagefile']
+	    print "--"+self.messagefile+"--"
 	    self.debug=config._sections['general']['debug']
 	    self.minticks=config._sections['general']['minticks']
+	    self.messagebuffer=config._sections['general']['messagebuffer']
 	    if "yes" in config._sections['general']['useiptables'].lower():
 		self.iptables=True
 	    else:
