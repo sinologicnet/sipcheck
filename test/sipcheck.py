@@ -85,13 +85,10 @@ class SIPCheck(object):
 		suspectIP=""
 		ip=()
 		if "wrong password" in line.lower():
-		    logging.debug("Detectado intento de registro con contraseña fallida:", line)
 		    ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', line )
 		elif "rejected" in line.lower():
-		    logging.debug("Detectado intento de llamada no autentificada:", line)
 		    ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', line )
 		elif "no matching peer found" in line.lower():
-		    logging.debug("Detectado intento de registro a usuario invalido:", line)
 		    ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', line )
 
 		if len(ip) > 1:
