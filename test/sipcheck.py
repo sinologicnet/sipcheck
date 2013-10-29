@@ -15,6 +15,7 @@ __status__ = "Production"
 
 
 import configOptionsParser,iptablesController,sqlitedb,ignoreList
+#import distributedList
 import time,sys,os,re
 
 
@@ -26,7 +27,7 @@ class SIPCheck(object):
 	self.config=configOptionsParser.ConfigFile("sipcheck.conf")
 
 	# Initialize iptables object with the ip list that we are going to ban
-	# Parser iptables entries and insert into our local database
+	# Parses iptables entries and insert into our local database
 	self.iptables=iptablesController.IPTables()
 
 	# Initialize database object to load ip list to ban
@@ -35,10 +36,7 @@ class SIPCheck(object):
 	# Inicialize list of host and networks to ignore
 	self.ignoreList=ignoreList.IgnoreList("sipcheck.ignore")
 
-	LEVELS = {'4': logging.DEBUG,'3': logging.INFO,'2': logging.WARNING,'1': logging.ERROR,'0': logging.CRITICAL}
-	level = LEVELS.get(self.config.debug, logging.NOTSET)
-
-	logging.basicConfig(filename=self.config.logfile,level=level)
+#	self.distributedList=distributedList.distributedList(self.config.username,self.config.password)
 
 
     def run(self):
