@@ -18,13 +18,21 @@ class ConfigFile:
 	self.minticks=config._sections['general']['minticks']
 	self.messagebuffer=config._sections['general']['messagebuffer']
 	self.logfile=config._sections['general']['logfile']
-	self.username=config._sections['general']['username']
-	self.password=config._sections['general']['password']
 
 	if "yes" in config._sections['general']['useiptables'].lower():
 	    self.iptables=True
 	else:
 	    self.iptables=False
+
+	if "yes" in config._sections['general']['sharedlist'].lower():
+	    print "Shared list enabled"
+	    self.shared=True
+	    self.username=config._sections['general']['username']
+	    self.password=config._sections['general']['password']
+	else:
+	    self.shared=False
+
+
 
 	    
 #	except KeyError:

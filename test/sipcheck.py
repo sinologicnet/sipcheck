@@ -14,15 +14,14 @@ __email__ = "sipcheck@sinologic.net"
 __status__ = "Production"
 
 
-import configOptionsParser,iptablesController,sqlitedb,ignoreList
-#import distributedList
+import configOptionsParser,iptablesController,sqlitedb,ignoreList,distributedList
 import time,sys,os,re
 
 
 class SIPCheck(object):
 
     def __init__(self):
-
+	print "Starting SIPCheck "+__version__+"..."
 	# Inicialize sipcheck configuration file
 	self.config=configOptionsParser.ConfigFile("sipcheck.conf")
 
@@ -36,8 +35,10 @@ class SIPCheck(object):
 	# Inicialize list of host and networks to ignore
 	self.ignoreList=ignoreList.IgnoreList("sipcheck.ignore")
 
-#	self.distributedList=distributedList.distributedList(self.config.username,self.config.password)
-
+	if self.config.shared:
+	    self.distributedList=distributedList.distributedList("sipcheck.sinologic.net",6969,self.config.username,self.config.password)
+	    if self.distributedList.conectado:
+		print self.distributedList.get_ip_list()
 
     def run(self):
 
