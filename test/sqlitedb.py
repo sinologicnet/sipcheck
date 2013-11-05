@@ -11,21 +11,23 @@ class DB(object):
 	def __init__(self, file='sipcheck.db'):
 		''' Constructor of the class '''
 		self.dbfile = file
-		try:
-		    with open('filename'):
-			pass
-		except IOError:
-		    print 'Oh dear. %s not found. We must to create it.' % (self.dbfile)
-		    if os.access('.', os.W_OK):
-			self.create_table()
-		    else:
-			print "Unable to create database file %s" % (self.dbfile)
-
+		if not self.check():
+		    self.create_table()
 
 	def check(self):
 		''' TODO: Verify file exists, is writable, is a valid sqlite3 file
 		and contain all necessary tables  '''
-		return True
+		status=False
+		try:
+		    with open(self.dbfile):
+			status=True
+		except IOError:
+		    print 'Warning! %s not found. We must to create it.' % (self.dbfile)
+		    # Check if this path is writable
+		    if not os.access('.', os.W_OK):
+			print "Unable to create database file %s" % (self.dbfile)
+			exit(1)
+		return status
 
 	def sql(self, sql, params=()):
 		''' Method to connect and execute some SQL sentence '''
@@ -45,22 +47,23 @@ class DB(object):
 		return data
 
 	def create_table(self):
-		return self.sql("""CREATE TABLE banned
-							(ip,
-							try DEFAULT 0,
-							block DEFAULT 0,
-							created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-							updated_at DATETIME DEFAULT CURRENT_TIMESTAMP)""")
+		return self.sql("""CREATE TABLE banned \
+	(ip, \
+	try DEFAULT 0, \
+	block DEFAULT 0, \
+	created_at DATETIME DEFAULT CURRENT_TIMESTAMP, \
+	updated_at DATETIME DEFAULT CURRENT_TIMESTAMP)""")
 
 	def show_ips(self):
 	  return self.sql("SELECT ip, try, block, created_at, updated_at FROM banned")
 
 	def show_blocked(self):
-	  ips = self.sql("SELECT ip FROM banned WHERE block = 1")
-	  response = []
-	  for ip in ips:
-	    response.append(ip[0])
-	  return response
+	    ips = self.sql("SELECT ip FROM banned WHERE block = 1")
+	    response = []
+	    type(ips)
+	    for ip in ips:
+		response.append(ip[0])
+	    return response
 
 	def insert_ip(self, ip, ntry=1):
 		''' Method to insert the IP into the table of banned ips '''

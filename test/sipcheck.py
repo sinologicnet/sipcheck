@@ -74,7 +74,7 @@ class SIPCheck(object):
 	    st_size=st_size-self.config.messagebuffer
 
 	self.file.seek(st_size)
-
+	print "Waiting for attackers..."
 	while True:
 	    where = self.file.tell()
 	    line  = self.file.readline()
