@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 '''
-    SIPCheck is a tool that parse the file /var/log/asterisk/messages looking for error and 
-    warnings messages from unauthorized access or trying calls from anonymous users and add 
-    their ip to the firewall and warns to sinologic server to add for global list of banned 
+    SIPCheck is a tool that parse the file /var/log/asterisk/messages looking for error and
+    warnings messages from unauthorized access or trying calls from anonymous users and add
+    their ip to the firewall and warns to sinologic server to add for global list of banned
     ip.
 '''
 
@@ -15,9 +15,9 @@
 	- configure: table with the values of:
 		+ last time we run this script
 		+ datetime of the ipbanned table
-		+ 
+		+
 	- ipsuspect: table with the list of the ip suspected of attacks
-	
+
 
     1. Get all values of the "configure" table.
     2. Check the datetime of the ipbanned table:
@@ -29,12 +29,13 @@
     5. If it is required, add to the firewall new ip address suspected.
 
 '''
+import argparse
 
 import time, os, re
 import threading
 
-from incl.sqlitedb import DB
-from incl.block import IPT
+from sipcheck.sqlitedb import DB
+from sipcheck.block import IPT
 
 ############################################
 #  Conf:
@@ -93,10 +94,8 @@ class BlockAttackers(threading.Thread):
             for ip in db.GetIPsToBlock():
                 print "Blocking IP: " + ip[0]
                 block.BlockIP(ip[0])
-           
+
             time.sleep(1)
-
-
 
 
 def go():
@@ -109,11 +108,14 @@ def go():
         getattackers.join()
         blockattackers.join()
 
-
 if __name__ == '__main__':
-   try:
-      go()
-   except KeyboardInterrupt:
-      # do nothing here
-      pass
+    try:
+        parser = argparse.ArgumentParser(description='SIPCheck')
+        parser.add_argument('-c', action="store", dest="config_file")
+        cargs = parser.parse_args()
+        cargs.config_file
+        go()
+    except KeyboardInterrupt:
+        # do nothing here
+    pass
 
