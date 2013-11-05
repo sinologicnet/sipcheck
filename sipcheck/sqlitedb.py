@@ -36,11 +36,11 @@ class DB(object):
 
 	def create_table(self):
 		return self.sql("""CREATE TABLE banned
-										(ip,
-										try DEFAULT 0,
-										block DEFAULT 0,
-										created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-										updated_at DATETIME DEFAULT CURRENT_TIMESTAMP)""")
+							(ip,
+							try DEFAULT 0,
+							block DEFAULT 0,
+							created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+							updated_at DATETIME DEFAULT CURRENT_TIMESTAMP)""")
 
 	def show_ips(self):
 	  return self.sql("SELECT ip, try, block, created_at, updated_at FROM banned")
