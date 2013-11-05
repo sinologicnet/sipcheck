@@ -17,11 +17,13 @@ class DB(object):
     def check_db(self):
         '''  Verify file exists, is writable,
         is a valid sqlite3 file and contain all necessary tables '''
-
-        status = True
         if os.path.isfile(self.dbfile) is not True:
-            status = False
-        return status
+            return False
+        if os.access(self.dbfile, os.R_OK) is not True:
+            return False
+        if os.access(self.dbfile, os.W_OK) is not True:
+            return False
+        return True
 
     def sql(self, sql, params=()):
         ''' Method to connect and execute some SQL sentence '''
@@ -109,15 +111,3 @@ class DB(object):
         if res is not None:
             done = True
         return done
-
-if __name__ == '__main__':
-    ip_address = "192.168.1.2"
-    sdb = DB('sipcheck.db')
-    sdb.create_table()
-    print sdb.show_blocked()
-    print "Intentos: %r" % sdb.insert_ip(ip_address)
-    print sdb.show_ips()
-    print sdb.block_ip(ip_address)
-    print sdb.unblock_ip(ip_address)
-    print sdb.block_ip("192.168.1.3")
-    print sdb.delete_ip("192.168.1.3")
