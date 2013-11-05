@@ -121,4 +121,3 @@ if __name__ == '__main__':
     print sdb.unblock_ip(ip_address)
     print sdb.block_ip("192.168.1.3")
     print sdb.delete_ip("192.168.1.3")
-:q
