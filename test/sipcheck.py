@@ -46,7 +46,7 @@ class SIPCheck(object):
 	listaTBIP=self.iptables.listaIP
 
 	# We get all entries blocked into our local database
-	listaDBIP=self.db.ShowBlocked()
+	listaDBIP=self.db.show_blocked()
 
 	# Each IP into database we must check if exists into iptables list
 	for dbip in listaDBIP:
@@ -58,9 +58,9 @@ class SIPCheck(object):
 	while True:
 	    ip=self.processFile()
 	    if ip != "" and not self.ignoreList.isInList(ip) and ip not in self.iptables.listaIP:
-		tries=self.db.InsertIP(ip)
+		tries=self.db.insert_ip(ip)
 		if tries > int(self.config.minticks):
-		    self.db.BlockIP(ip)
+		    self.db.block_ip(ip)
 		    self.iptables.banip(ip)
 
 
@@ -74,7 +74,7 @@ class SIPCheck(object):
 	    st_size=st_size-self.config.messagebuffer
 
 	self.file.seek(st_size)
-
+	print "Waiting for attackers..."
 	while True:
 	    where = self.file.tell()
 	    line  = self.file.readline()
@@ -106,7 +106,7 @@ class SIPCheck(object):
 	listaTBIP=self.iptables.listaIP
 
 	# We get all entries blocked into our local database
-	listaDBIP=self.db.ShowBlocked()
+	listaDBIP=self.db.show_blocked()
 
 	# Each IP into database we must check if exists into iptables list
 	for dbip in listaDBIP:
