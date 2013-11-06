@@ -20,17 +20,15 @@ class IgnoreList(object):
     def is_ignored(self, ipaddress):
         ''' check if IP is in ignore values '''
         ignored = False
-        try:
-            current_ip = self.dotted_quad_to_num(ipaddress)
-            for net in self.ignores:
-                net_parts = net.split("/")
-                network = net_parts[0]
-                mask = net_parts[1]
-                netmask = self.network_mask(str(network), int(mask))
-                if self.address_in_network(current_ip, netmask):
-                    ignored = True
-        except Exception as excep:
-            ignored = False
+
+        current_ip = self.dotted_quad_to_num(ipaddress)
+        for net in self.ignores:
+            net_parts = net.split("/")
+            network = net_parts[0]
+            mask = net_parts[1]
+            netmask = self.network_mask(str(network), int(mask))
+            if self.address_in_network(current_ip, netmask):
+                ignored = True
 
         return ignored
 
