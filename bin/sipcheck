@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 '''
     SIPCheck is a tool that parse the file /var/log/asterisk/messages looking for error and
@@ -34,8 +34,8 @@ import argparse
 import time, os, re
 import threading
 
-from sipcheck.sqlitedb import DB
-from sipcheck.block import IPT
+from sipcheck.db import DB
+from sipcheck.block import IPTables
 
 ############################################
 #  Conf:
@@ -113,7 +113,7 @@ if __name__ == '__main__':
         parser = argparse.ArgumentParser(description='SIPCheck')
         parser.add_argument('-c', action="store", dest="config_file")
         cargs = parser.parse_args()
-        cargs.config_file
+        config = Config(cargs.config_file)
         go()
     except KeyboardInterrupt:
         # do nothing here
