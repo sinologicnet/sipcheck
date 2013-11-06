@@ -17,7 +17,7 @@ class Config(object):
         ''' Return value of general config '''
         return self.config.get('general', key)
 
-    def get_sahred(self, key):
+    def get_shared(self, key):
         ''' Return value of sahred config '''
         return self.config.get('sahred', key)
 

@@ -11,3 +11,5 @@ MANIFEST
 *.swp
 
 *.db
+tmp/
+*.egg-info/

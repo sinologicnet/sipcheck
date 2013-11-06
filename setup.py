@@ -18,4 +18,5 @@ setup(name='sipcheck',
       packages=['sipcheck'],
       package_dir={'sipcheck': 'sipcheck'},
       long_description=read('README.md'),
+      dependences='argparse',
       zip_safe=False)

@@ -8,6 +8,7 @@ Thanks to @saghul
 Need to use IPv6 too
 """
 
+import logging
 import socket
 import struct
 
@@ -16,11 +17,12 @@ class IgnoreList(object):
 
     def __init__(self, ignores):
         self.ignores = ignores
+        self.logger = logging.getLogger(__name__)
 
     def is_ignored(self, ipaddress):
         ''' check if IP is in ignore values '''
         ignored = False
-
+        self.logger.debug('check %s IP address in ignore list' % ipaddress)
         current_ip = self.dotted_quad_to_num(ipaddress)
         for net in self.ignores:
             net_parts = net.split("/")

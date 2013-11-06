@@ -3,6 +3,7 @@
   Class for storing ips in SQLite3 database
 """
 
+import logging
 import sqlite3
 import os.path
 
@@ -13,15 +14,24 @@ class DB(object):
     def __init__(self, dbfile='sipcheck.db'):
         ''' Constructor of the class where we set where save db file '''
         self.dbfile = dbfile
+        self.logger = logging.getLogger(__name__)
+        self.logger.debug("DataBase object created")
 
-    def check_db(self):
-        '''  Verify file exists, is writable,
+    def exists(self):
+        '''  Verify file exists '''
+        return os.path.isfile(self.dbfile)
+
+    def check(self):
+        '''  Is writable,
         is a valid sqlite3 file and contain all necessary tables '''
-        if os.path.isfile(self.dbfile) is not True:
+        if self.exists() is not True:
+            self.logger.debug("DataBase don't exists")
             return False
         if os.access(self.dbfile, os.R_OK) is not True:
+            self.logger.debug("DataBase isn't readabel")
             return False
         if os.access(self.dbfile, os.W_OK) is not True:
+            self.logger.debug("DataBase isn't writable")
             return False
         return True
 
@@ -35,8 +45,9 @@ class DB(object):
             cur.execute(sql, params)
             conn.commit()
             data = cur.fetchall()
-        except sqlite3.Error as error:
-            print "Error in sql => %s" % error.args[0]
+        except sqlite3.Error:
+            data = None
+            #print "Error in sql => %s" % error.args[0]
             #sys.exit(1)
         finally:
             if conn is not None:
@@ -45,6 +56,7 @@ class DB(object):
 
     def create_table(self):
         ''' Create de table escrutture '''
+        self.logger.debug("Creating table")
         return self.sql("""CREATE TABLE banned
                         (ip,
                         try DEFAULT 0,
@@ -68,6 +80,7 @@ class DB(object):
 
     def insert_ip(self, ipaddress, ntry=1):
         ''' Method to insert the IP into the table of banned ips '''
+        self.logger.debug("Inserting IP %s" % ipaddress)
         existe = self.sql("SELECT try FROM banned WHERE ip = ?",
                         (ipaddress,))
         tries = 1
@@ -83,6 +96,7 @@ class DB(object):
 
     def block_ip(self, ipaddress):
         ''' Block an IP address '''
+        self.logger.debug("Block IP %s" % ipaddress)
         done = False
         self.insert_ip(ipaddress, 0)
         res = self.sql("""UPDATE banned
@@ -94,6 +108,7 @@ class DB(object):
 
     def unblock_ip(self, ipaddress):
         ''' Unblock an IP address '''
+        self.logger.debug("Unblock IP %s" % ipaddress)
         done = False
         self.insert_ip(ipaddress, 0)
         res = self.sql("""UPDATE banned
@@ -105,6 +120,7 @@ class DB(object):
 
     def delete_ip(self, ipaddress):
         ''' Delete an IP fron de table '''
+        self.logger.debug("Delete IP %s" % ipaddress)
         done = False
         self.insert_ip(ipaddress, 0)
         res = self.sql("DELETE FROM banned WHERE ip=?", (ipaddress, ))

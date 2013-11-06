@@ -29,17 +29,67 @@
     5. If it is required, add to the firewall new ip address suspected.
 
 '''
-import argparse
 
+import argparse
+import sys
+import logging
+
+from sipcheck.config import Config
+from sipcheck.db import DB
+
+LEVELS = {'debug': logging.DEBUG,
+          'info': logging.INFO,
+          'warning': logging.WARNING,
+          'error': logging.ERROR,
+          'critical': logging.CRITICAL}
+
+def setup_logger(logfile, loglevel):
+    logformat = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    logger.info("Internal logs will be stored at %s file." %
+        config.get_general('logfile'))
+    # create a file handler
+    handler = logging.FileHandler(logfile)
+    handler.setLevel(level=LEVELS[loglevel])
+
+    # create a logging format
+    formatter = logging.Formatter(logformat)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logging.basicConfig(level=LEVELS[loglevel])
 
 if __name__ == '__main__':
+    logger = logging.getLogger(__name__)
     try:
         parser = argparse.ArgumentParser(description='SIPCheck')
         parser.add_argument('-c', action="store", dest="config_file")
         cargs = parser.parse_args()
+
+        print "Reading configuration from file %s" % cargs.config_file
         config = Config(cargs.config_file)
-        #go()
+
+        setup_logger(
+            config.get_general('logfile'), config.get_general('loglevel') )
+
+        logger.debug("Ussing %s file as database" %
+            config.get_database('file'))
+        db = DB(config.get_database('file'))
+        if db.exists() is not True:
+            logger.debug("DataBase don't exists, creating...")
+            db.create_table()
+
+        if db.check() is not True:
+            logger.error("ERROR: Can't create database file.")
+            sys.exit(-1)
+
+        logger.debug("Reading logs from %s" %
+            config.get_general('messagefile'))
+        if config.get_general('useiptables'):
+            logger.info("Will block IPs with iptables")
+
     except KeyboardInterrupt:
+        logger.error("KeyboardInterrupt form SIPCheck. Stoping")
         # do nothing here
-    pass
+    finally:
+        logger.info("SIPCheck stoped")
+
 
