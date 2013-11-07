@@ -17,7 +17,7 @@ class IgnoreList(object):
 
     def __init__(self, ignores):
         self.ignores = ignores
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger('sipcheck')
 
     def is_ignored(self, ipaddress):
         ''' check if IP is in ignore values '''
@@ -34,6 +34,7 @@ class IgnoreList(object):
 
         return ignored
 
+    @classmethod
     def make_mask(self, net_bits):
         ''' return a mask of n bits as a long integer '''
         return (2L<<net_bits-1) - 1

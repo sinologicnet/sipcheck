@@ -32,6 +32,9 @@
 
 import argparse
 import sys
+import re
+import os
+import time
 import logging
 
 from sipcheck.config import Config
@@ -42,6 +45,16 @@ LEVELS = {'debug': logging.DEBUG,
           'warning': logging.WARNING,
           'error': logging.ERROR,
           'critical': logging.CRITICAL}
+
+def is_attack(line):
+    if "rejected" in line:
+        return True
+    if "Wrong password" in line:
+        return True
+    return False
+
+def add_ip(db, ipaddress):
+    db.insert_ip(ipaddress)
 
 def setup_logger(logfile, loglevel):
     logformat = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -58,7 +71,7 @@ def setup_logger(logfile, loglevel):
     logging.basicConfig(level=LEVELS[loglevel])
 
 if __name__ == '__main__':
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger('sipcheck')
     try:
         parser = argparse.ArgumentParser(description='SIPCheck')
         parser.add_argument('-c', action="store", dest="config_file")
@@ -85,6 +98,24 @@ if __name__ == '__main__':
             config.get_general('messagefile'))
         if config.get_general('useiptables'):
             logger.info("Will block IPs with iptables")
+
+        asterisk_log = open(config.get_general('messagefile'), 'r')
+
+        #Find the size of the file and move to the end
+        st_results = os.stat(config.get_general('messagefile'))
+        st_size = st_results[6]
+        asterisk_log.seek(st_size)
+        while True:
+            where = asterisk_log.tell()
+            line  = asterisk_log.readline()
+
+            if not line:
+                time.sleep(0.2)
+                asterisk_log.seek(where)
+            else:
+                if is_attack(line):
+                    ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', line )[0]
+                    add_ip(db, ip)
 
     except KeyboardInterrupt:
         logger.error("KeyboardInterrupt form SIPCheck. Stoping")

@@ -14,7 +14,7 @@ class DB(object):
     def __init__(self, dbfile='sipcheck.db'):
         ''' Constructor of the class where we set where save db file '''
         self.dbfile = dbfile
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger('sipcheck')
         self.logger.debug("DataBase object created")
 
     def exists(self):

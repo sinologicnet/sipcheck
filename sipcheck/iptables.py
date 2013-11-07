@@ -12,7 +12,7 @@ class IPTables(object):
     def __init__(self, dbconn):
         ''' Constructor '''
         self.dbconn = dbconn
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger('sipcheck')
 
     def block(self, ipaddress):
         ''' Set an IP adress as blocked an blocks with iptables '''
