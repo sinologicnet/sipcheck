@@ -40,6 +40,7 @@ import logging
 from sipcheck.config import Config
 from sipcheck.db import DB
 from sipcheck.ignorelist import IgnoreList
+from sipcheck.iptables import IPTables
 
 LEVELS = {'debug': logging.DEBUG,
           'info': logging.INFO,
@@ -55,7 +56,7 @@ def is_attack(line):
     return False
 
 def add_ip(db, ipaddress):
-    db.insert_ip(ipaddress)
+    return db.insert_ip(ipaddress)
 
 def setup_logger(logfile, loglevel):
     logformat = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -97,8 +98,11 @@ if __name__ == '__main__':
 
         logger.debug("Reading logs from %s" %
             config.get_general('messagefile'))
-        if config.get_general('useiptables'):
+
+        useiptables = config.get_general('useiptables')
+        if useiptables:
             logger.info("Will block IPs with iptables")
+            ipt = IPTables()
 
         asterisk_log = open(config.get_general('messagefile'), 'r')
 
@@ -123,7 +127,14 @@ if __name__ == '__main__':
                     if ignore_list.s_check(ip):
                         logger.info("IP %s on ignore" % ip)
                     else:
-                        add_ip(db, ip)
+                        tries = add_ip(db, ip)
+                        logger.debug("%s : %r/%r" % (ip, tries, config.get_general('minticks')))
+                        if tries >= int(config.get_general('minticks')):
+                            db.block_ip(ip)
+                            logger.debug("DB block: %s" % ip)
+                            if useiptables:
+                                ipt.block(ip)
+                                logger.debug("IPT block: %s" % ip)
 
     except KeyboardInterrupt:
         logger.error("KeyboardInterrupt form SIPCheck. Stoping")
