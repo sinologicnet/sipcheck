@@ -18,5 +18,5 @@ setup(name='sipcheck',
       packages=['sipcheck'],
       package_dir={'sipcheck': 'sipcheck'},
       long_description=read('README.md'),
-      install_requires='argparse',
+      install_requires=['argparse', 'ipaddress'],
       zip_safe=False)

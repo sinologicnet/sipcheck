@@ -11,6 +11,7 @@ Need to use IPv6 too
 import logging
 import socket
 import struct
+import ipaddress
 
 class IgnoreList(object):
     ''' Define if an IP is in ignore list '''
@@ -19,34 +20,19 @@ class IgnoreList(object):
         self.ignores = ignores
         self.logger = logging.getLogger('sipcheck')
 
-    def is_ignored(self, ipaddress):
+    def s_check(self, ip_address):
         ''' check if IP is in ignore values '''
         ignored = False
-        self.logger.debug('check %s IP address in ignore list' % ipaddress)
-        current_ip = self.dotted_quad_to_num(ipaddress)
+        ip_address = self.dotted_quad_to_num(ip_address)
         for net in self.ignores:
-            net_parts = net.split("/")
-            network = net_parts[0]
-            mask = net_parts[1]
-            netmask = self.network_mask(str(network), int(mask))
-            if self.address_in_network(current_ip, netmask):
+            #self.logger.debug("%s" % net)
+            #self.logger.debug("%s : %r" %
+            #    (net, ipaddress.ip_network(unicode(net))))
+            if (ipaddress.ip_address(ip_address) in
+                ipaddress.ip_network(unicode(net), strict=False)):
                 ignored = True
-
         return ignored
 
-    @classmethod
-    def make_mask(self, net_bits):
-        ''' return a mask of n bits as a long integer '''
-        return (2L<<net_bits-1) - 1
-
-    def dotted_quad_to_num(self, ipaddress):
+    def dotted_quad_to_num(self, ip_address):
         ''' convert decimal dotted quad string to long integer '''
-        return struct.unpack('!L', socket.inet_aton(ipaddress))[0]
-
-    def network_mask(self, ipaddress, bits):
-        ''' Convert a network address to a long integer '''
-        return self.dotted_quad_to_num(ipaddress) and self.make_mask(bits)
-
-    def address_in_network(self, ipaddress, net):
-        ''' Is an address in a network '''
-        return ipaddress & net == net
+        return struct.unpack('!L', socket.inet_aton(ip_address))[0]

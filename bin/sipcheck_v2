@@ -39,6 +39,7 @@ import logging
 
 from sipcheck.config import Config
 from sipcheck.db import DB
+from sipcheck.ignorelist import IgnoreList
 
 LEVELS = {'debug': logging.DEBUG,
           'info': logging.INFO,
@@ -101,6 +102,10 @@ if __name__ == '__main__':
 
         asterisk_log = open(config.get_general('messagefile'), 'r')
 
+        logger.debug("IPS on ignore : %r" % config.get_ignore())
+        ignore_list = IgnoreList(config.get_ignore())
+        ignore_list.s_check('10.10.10.1')
+
         #Find the size of the file and move to the end
         st_results = os.stat(config.get_general('messagefile'))
         st_size = st_results[6]
@@ -115,7 +120,10 @@ if __name__ == '__main__':
             else:
                 if is_attack(line):
                     ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', line )[0]
-                    add_ip(db, ip)
+                    if ignore_list.s_check(ip):
+                        logger.info("IP %s on ignore" % ip)
+                    else:
+                        add_ip(db, ip)
 
     except KeyboardInterrupt:
         logger.error("KeyboardInterrupt form SIPCheck. Stoping")
