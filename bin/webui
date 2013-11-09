@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+from sipcheck.webui import WebUI
+
+if __name__ == '__main__':
+    webui = WebUI()
