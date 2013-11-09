@@ -8,7 +8,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(name='sipcheck',
-      version='2.0.0',
+      version='2.0.0-alpha1',
       description='',
       url='https://github.com/sinologicnet/sipcheck',
       author='Elio Rojano, Sergio Cotelo, Javier Vidal',
