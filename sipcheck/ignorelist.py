@@ -23,11 +23,8 @@ class IgnoreList(object):
     def s_check(self, ip_address):
         ''' check if IP is in ignore values '''
         ignored = False
-        ip_address = self.dotted_quad_to_num(ip_address)
+        ip_address = struct.unpack('!L', socket.inet_aton(ip_address))[0]
         for net in self.ignores:
-            #self.logger.debug("%s" % net)
-            #self.logger.debug("%s : %r" %
-            #    (net, ipaddress.ip_network(unicode(net))))
             if (ipaddress.ip_address(ip_address) in
                 ipaddress.ip_network(unicode(net), strict=False)):
                 ignored = True

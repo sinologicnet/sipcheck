@@ -14,4 +14,3 @@ gather the IP addresses of the attackers and publish them if they return or are 
 
 # TODO
 *  Enable IPv6 support
-* Control logrotate to reopen log file
