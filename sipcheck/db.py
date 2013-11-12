@@ -22,8 +22,7 @@ class DB(object):
         return os.path.isfile(self.dbfile)
 
     def check(self):
-        '''  Is writable,
-        is a valid sqlite3 file and contain all necessary tables '''
+        '''  Is writable, is a valid sqlite3 file and contain all necessary tables '''
         if self.exists() is not True:
             self.logger.debug("DataBase don't exists")
             return False
@@ -67,11 +66,11 @@ class DB(object):
 
     def show_ips(self):
         ''' Return IPS in banned table '''
-        return self.sql("""SELECT ip, try, block, created_at, updated_at
-        FROM banned""")
+        return self.sql("""SELECT ip, try, block, created_at, updated_at 
+	    FROM banned""")
 
     def show_blocked(self):
-        ''' Return bloked IPS in banned table '''
+        ''' Return IP blocked from banned table '''
         blocks = self.sql("SELECT ip FROM banned WHERE block = 1")
         response = []
         for block in blocks:
@@ -79,7 +78,7 @@ class DB(object):
         return response
 
     def insert_ip(self, ipaddress, ntry=1):
-        ''' Method to insert the IP into the table of banned ips '''
+        ''' Method to insert IP into the table of banned ips '''
         self.logger.debug("Inserting IP %s" % ipaddress)
         existe = self.sql("SELECT try FROM banned WHERE ip = ?",
                         (ipaddress,))
@@ -95,7 +94,7 @@ class DB(object):
         return tries
 
     def block_ip(self, ipaddress):
-        ''' Block an IP address '''
+        ''' Block IP address '''
         self.logger.debug("Block IP %s" % ipaddress)
         done = False
         self.insert_ip(ipaddress, 0)
@@ -107,7 +106,7 @@ class DB(object):
         return done
 
     def unblock_ip(self, ipaddress):
-        ''' Unblock an IP address '''
+        ''' Unblock IP address '''
         self.logger.debug("Unblock IP %s" % ipaddress)
         done = False
         self.insert_ip(ipaddress, 0)
@@ -119,7 +118,7 @@ class DB(object):
         return done
 
     def delete_ip(self, ipaddress):
-        ''' Delete an IP fron de table '''
+        ''' Delete IP from the table '''
         self.logger.debug("Delete IP %s" % ipaddress)
         done = False
         self.insert_ip(ipaddress, 0)

@@ -111,7 +111,7 @@ class SIPCheck(Thread):
 
     def init_db(self, dbfile):
         ''' Init database '''
-        self.logger.debug("Ussing %s file as database" % dbfile)
+        self.logger.debug("Using %s file as database" % dbfile)
         bdb = DB(dbfile)
         if bdb.exists() is not True:
             self.logger.debug("DataBase don't exists, creating...")

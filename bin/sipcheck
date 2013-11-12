@@ -43,19 +43,19 @@ from sipcheck.sipcheck import SIPCheck
 if __name__ == '__main__':
     logger = logging.getLogger('sipcheck')
     try:
-        parser = argparse.ArgumentParser(description='SIPCheck')
-        parser.add_argument('-c', action="store", dest="config_file")
-        cargs = parser.parse_args()
+	parser = argparse.ArgumentParser(description='SIPCheck')
+	parser.add_argument('-c', action="store", dest="config_file")
+	cargs = parser.parse_args()
 
-        server = SIPCheck(cargs.config_file)
-        server.start()
+	server = SIPCheck(cargs.config_file)
+	server.start()
 
-        while True:
-            time.sleep(1)
+	while True:
+	    time.sleep(1)
 
     except KeyboardInterrupt:
-        server.quit()
-        server.join()
-        logger.error("KeyboardInterrupt form SIPCheck. Stoping")
+	server.quit()
+	server.join()
+	logger.debug("Keyboard stopped detected...")
     finally:
-        logger.info("SIPCheck stoped")
+	logger.info("SIPCheck Stopped")
