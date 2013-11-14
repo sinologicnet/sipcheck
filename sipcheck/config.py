@@ -18,8 +18,8 @@ class Config(object):
         return self.config.get('general', key)
 
     def get_shared(self, key):
-        ''' Return value of sahred config '''
-        return self.config.get('sahred', key)
+        ''' Return value of shared config '''
+        return self.config.get('shared', key)
 
     def get_database(self, key):
         ''' Return value of database config '''
