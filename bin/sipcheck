@@ -10,6 +10,7 @@
 import logging
 import argparse
 import time
+import sys
 
 from sipcheck.sipcheck import SIPCheck
 
@@ -19,7 +20,9 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='SIPCheck')
 	parser.add_argument('-c', action="store", dest="config_file")
 	cargs = parser.parse_args()
-
+        if len(sys.argv)==1:
+            parser.print_help()
+            sys.exit(1)
 	server = SIPCheck(cargs.config_file)
 	server.start()
 
