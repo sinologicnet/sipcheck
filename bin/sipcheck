@@ -17,21 +17,25 @@ from sipcheck.sipcheck import SIPCheck
 if __name__ == '__main__':
     logger = logging.getLogger('sipcheck')
     try:
-	parser = argparse.ArgumentParser(description='SIPCheck')
-	parser.add_argument('-c', action="store", dest="config_file")
-	cargs = parser.parse_args()
-        if len(sys.argv)==1:
-            parser.print_help()
-            sys.exit(1)
-	server = SIPCheck(cargs.config_file)
-	server.start()
+        parser = argparse.ArgumentParser(description='SIPCheck')
+        parser.add_argument('-c', action="store", dest="config_file", default="/etc/sipcheck.conf")
+        try:
+            with open("/etc/sipcheck.conf"):
+                pass
+        except IOError:
+            if len(sys.argv)==1:
+                parser.print_help()
+                sys.exit(1)
+        cargs = parser.parse_args()
+        server = SIPCheck(cargs.config_file)
+        server.start()
 
-	while True:
-	    time.sleep(1)
+        while True:
+            time.sleep(1)
 
     except KeyboardInterrupt:
-	server.quit()
-	server.join()
-	logger.debug("Keyboard stopped detected...")
+        server.quit()
+        server.join()
+        logger.debug("Keyboard stopped detected...")
     finally:
-	logger.info("SIPCheck Stopped")
+        logger.info("SIPCheck Stopped")
