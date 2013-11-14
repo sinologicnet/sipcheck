@@ -128,6 +128,8 @@ class SIPCheck(Thread):
             return True
         if "Wrong password" in line:
             return True
+        if "failed to authenticate" in line:
+            return True
         return False
 
     def add_ip(self, ipaddress):
