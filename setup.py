@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 ''' Install sipcheck with setuptools '''
 
 import os
