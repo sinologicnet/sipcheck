@@ -14,8 +14,6 @@ if __name__ == '__main__':
         webui = WebUI(cargs.config_file)
 
     except KeyboardInterrupt:
-        server.quit()
-        server.join()
         logger.error("KeyboardInterrupt form SIPCheck. Stoping")
     finally:
         logger.info("SIPCheck stoped")
