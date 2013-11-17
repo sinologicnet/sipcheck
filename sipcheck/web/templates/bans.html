@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block content %}
+<h1>Banned IPs</h1>
+
+<ul id="navigation">
+  {% for ban in bans %}
+  <li>{{ ban[0] }} - {{ ban[1] }} - {{ ban[2] }} - {{ ban[3] }}</li>
+  {% endfor %}
+</ul>
+{% endblock %}
