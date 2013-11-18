@@ -14,7 +14,6 @@ from .config import Config
 from .db import DB
 from .ignorelist import IgnoreList
 from .iptables import IPTables
-from .sharelist import ShareList
 
 class SIPCheck(Thread):
     ''' Main class '''
@@ -45,13 +44,6 @@ class SIPCheck(Thread):
             self.logger.info("Will block IPs with iptables")
             ipt = IPTables()
 
-        useshared = self.config.get_shared('enable')
-        sharedkey = self.config.get_shared('key')
-        if useshared:
-            self.logger.info("Will share the attacks with Sinologic")
-            share = ShareList()
-            share.report_ip("192.168.0.1",sharedkey)
-
         asterisk_log = self.load_logfile()
 
         while self.work:
@@ -79,9 +71,6 @@ class SIPCheck(Thread):
                             if useiptables:
                                 ipt.block(ipaddress)
                                 self.logger.debug("IPT block: %s" % ipaddress)
-                            if useshared:
-                                self.logger.debug("SHA send: %s" % ipaddress)
-                                share.connect()
 
 
     def quit(self):
