@@ -46,9 +46,11 @@ class SIPCheck(Thread):
             ipt = IPTables()
 
         useshared = self.config.get_shared('enable')
+        print "PRUEBA"
+        self.logger.info("Use Shared Enabled?")
         sharedkey = self.config.get_shared('key')
         if useshared:
-            self.logger.info("Will share the attacks with Sinologic")
+            self.logger.info("We will syncronize all the attacks with sipcheck.Sinologic.net")
             share = ShareList()
             share.report_ip("192.168.0.1",sharedkey)
 
