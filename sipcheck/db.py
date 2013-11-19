@@ -24,7 +24,7 @@ class DB(object):
     def check(self):
         '''  Is writable, is a valid sqlite3 file and contain all necessary tables '''
         if self.exists() is not True:
-            self.logger.debug("DataBase don't exists")
+            self.logger.debug("DataBase doesn't exists")
             return False
         if os.access(self.dbfile, os.R_OK) is not True:
             self.logger.debug("DataBase isn't readable")
