@@ -12,17 +12,17 @@ class DB(object):
     dbfile = None
 
     def __init__(self, dbfile='sipcheck.db'):
-        ''' Constructor of the class where we set where save db file '''
+        ''' Constructor of the class where we set where to save db file '''
         self.dbfile = dbfile
         self.logger = logging.getLogger('sipcheck')
         self.logger.debug("DataBase object created")
 
     def exists(self):
-        '''  Verify file exists '''
+        '''  Verify if file exists '''
         return os.path.isfile(self.dbfile)
 
     def check(self):
-        '''  Is writable, is a valid sqlite3 file and contain all necessary tables '''
+        '''  Is writable, is a valid sqlite3 file and contains all necessary tables '''
         if self.exists() is not True:
             self.logger.debug("DataBase doesn't exist")
             return False
@@ -54,7 +54,7 @@ class DB(object):
         return data
 
     def create_table(self):
-        ''' Create de table escrutture '''
+        ''' Creation of table structure '''
         self.logger.debug("Creating table")
         return self.sql("""CREATE TABLE banned
                         (ip,
