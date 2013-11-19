@@ -27,7 +27,7 @@ class DB(object):
             self.logger.debug("DataBase don't exists")
             return False
         if os.access(self.dbfile, os.R_OK) is not True:
-            self.logger.debug("DataBase isn't readabel")
+            self.logger.debug("DataBase isn't readable")
             return False
         if os.access(self.dbfile, os.W_OK) is not True:
             self.logger.debug("DataBase isn't writable")
