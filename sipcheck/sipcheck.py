@@ -116,7 +116,7 @@ class SIPCheck(Thread):
         self.logger.debug("Using %s file as database" % dbfile)
         bdb = DB(dbfile)
         if bdb.exists() is not True:
-            self.logger.debug("DataBase don't exists, creating...")
+            self.logger.debug("DataBase doesn't exist, creating...")
             bdb.create_table()
 
         if bdb.check() is not True:
