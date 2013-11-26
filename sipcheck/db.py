@@ -77,13 +77,21 @@ class DB(object):
             response.append(block[0])
         return response
 
+    def check_bannedip(self, ipaddress):
+        ''' Method to check if ip is into the table of banned ips '''
+        self.logger.debug("Checking if %s is into the table" % ipaddress)
+        existe = self.sql("SELECT try FROM banned WHERE ip = ?", (ipaddress,))
+        return len(existe) > 0
+
     def insert_ip(self, ipaddress, ntry=1):
         ''' Method to insert IP into the table of banned ips '''
         self.logger.debug("Inserting IP %s" % ipaddress)
-        existe = self.sql("SELECT try FROM banned WHERE ip = ?",
-                        (ipaddress,))
+#        existe = self.sql("SELECT try FROM banned WHERE ip = ?",
+#                        (ipaddress,))
+
         tries = 1
-        if len(existe) is 0:
+        if not self.check_bannedip(ipaddress):
+#        if len(existe) is 0:
             existe = self.sql("INSERT INTO banned (ip) VALUES (?)",
                         (ipaddress, ))
         else:
