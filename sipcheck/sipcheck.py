@@ -14,6 +14,7 @@ from .config import Config
 from .db import DB
 from .ignorelist import IgnoreList
 from .iptables import IPTables
+from .sharelist import ShareList
 
 class SIPCheck(Thread):
     ''' Main class '''

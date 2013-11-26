@@ -81,7 +81,7 @@ class DB(object):
         ''' Method to check if ip is into the table of banned ips '''
         self.logger.debug("Checking if %s is into the table" % ipaddress)
         existe = self.sql("SELECT try FROM banned WHERE ip = ?", (ipaddress,))
-        return len(existe) > 0
+        return existe
 
     def insert_ip(self, ipaddress, ntry=1):
         ''' Method to insert IP into the table of banned ips '''
@@ -90,7 +90,8 @@ class DB(object):
 #                        (ipaddress,))
 
         tries = 1
-        if not self.check_bannedip(ipaddress):
+        existe=self.check_bannedip(ipaddress)
+        if len(existe) is 0:
 #        if len(existe) is 0:
             existe = self.sql("INSERT INTO banned (ip) VALUES (?)",
                         (ipaddress, ))
