@@ -44,6 +44,30 @@ class SIPCheck(Thread):
             self.logger.info("Will block IPs with iptables")
             ipt = IPTables()
 
+        useshared = self.config.get_shared('enable')
+        sharedkey = self.config.get_shared('key')
+        if useshared:
+            self.logger.info("We will syncronize all the attacks with sipcheck.Sinologic.net")
+            share = ShareList(sharedkey)
+            # We'll get list of ips like [u'+', u'90.80.90.21'] (+add|-remove) plus ip address to change from version number
+            changes=share.get(0)
+            numofchanges=len(changes)
+            for change in range(0,numofchanges):
+                tipo=changes[change][0]
+                ipaddress=changes[change][1]
+                if tipo == "+":
+                    self.logger.debug("Recieved from sinologic.net the advise to add %s" % ipaddress)
+                    if not self.ignore_list.s_check(ipaddress):
+                        if not self.ip_dbs.check_bannedip(ipaddress):
+                            self.ip_dbs.block_ip(ipaddress)
+                            if useiptables:
+                                ipt.block(ipaddress)
+                else:
+                    self.logger.debug("Recieved from sinologic.net the advise to remove %s" % ipaddress)
+                    self.ip_dbs.unblock_ip(ipaddress)
+                    if useiptables:
+                        ipt.unblock(ipaddress)
+
         asterisk_log = self.load_logfile()
 
         while self.work:
@@ -51,7 +75,7 @@ class SIPCheck(Thread):
             line  = asterisk_log.readline()
 
             if not line:
-                if stimes is 60:
+                if stimes is 5:
                     asterisk_log = self.load_logfile()
 
                 time.sleep(1)
@@ -60,18 +84,20 @@ class SIPCheck(Thread):
             else:
                 stimes = 0
                 if self.is_attack(line):
-                    ipaddress = re.findall( r'[0-9]+(?:\.[0-9]+){3}', line )[1]
+                    numips=len(re.findall( r'[0-9]+(?:\.[0-9]+){3}', line ))
+                    ipaddress = re.findall( r'[0-9]+(?:\.[0-9]+){3}', line )[numips-1]
                     if self.ignore_list.s_check(ipaddress):
                         self.logger.info("IP %s on ignore" % ipaddress)
                     else:
                         tries = self.add_ip(ipaddress)
                         if tries >= int(self.config.get_general('minticks')):
+                            self.logger.debug("Suspicious IP has become an attacker: %s" % ipaddress)
                             self.ip_dbs.block_ip(ipaddress)
-                            self.logger.debug("DB block: %s" % ipaddress)
                             if useiptables:
                                 ipt.block(ipaddress)
                                 self.logger.debug("IPT block: %s" % ipaddress)
-
+                            if useshared:
+                                share.report(ip)
 
     def quit(self):
         ''' stop Thread '''
