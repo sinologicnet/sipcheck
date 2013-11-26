@@ -29,6 +29,11 @@ Once it has identified a number of attempts from the same IP address, the system
 Downloading the application:
 <pre>git clone https://github.com/sinologicnet/sipcheck</pre>
 
+Installing the applicacion:
+<pre>cd sipcheck
+python setup.py install
+</pre>
+
 We could get new user account to use shared lists.
 
 Modify configuration file to customize it.
