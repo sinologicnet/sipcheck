@@ -59,9 +59,10 @@ class SIPCheck(Thread):
                 if tipo == "+":
                     self.logger.debug("Recieved from sinologic.net the advise to add %s" % ipaddress)
                     if not self.ignore_list.s_check(ipaddress):
-                        self.ip_dbs.block_ip(ipaddress)
-                        if useiptables:
-                            ipt.block(ipaddress)
+                        if not self.ip_dbs.check_bannedip(ipaddress):
+                            self.ip_dbs.block_ip(ipaddress)
+                            if useiptables:
+                                ipt.block(ipaddress)
                 else:
                     self.logger.debug("Recieved from sinologic.net the advise to remove %s" % ipaddress)
                     self.ip_dbs.unblock_ip(ipaddress)
