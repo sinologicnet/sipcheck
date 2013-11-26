@@ -27,17 +27,25 @@ class ShareList(object):
         self.key=key
         self.logger.debug("Using the unique key: %s" % self.key)
         socket.setdefaulttimeout(self.timeout)
-        response = urllib2.urlopen('http://%s/now' % self.host)
-        html = response.read().strip()
-        self.logger.debug(html)
+        html=""
+        try:
+            response = urllib2.urlopen("http://%s/now/%s/0" % (self.host,self.key))
+            html = response.read().strip()
+            self.logger.debug(html)
+        except Exception:
+            self.logger.error("Server %s not found" % (self.host))
 
     def get(self, version=0):
         ''' If we send version=0 we will receive only the ip address to ban, else we will receive the changes from version value '''
         socket.setdefaulttimeout(self.timeout)
-        response = urllib2.urlopen("http://%s/get?key=%s&version=%s" % (self.host,self.key,version))
-        html = response.read().strip()
-        cambios=json.loads(html)
-        numcambios=len(cambios)
+        cambios=[]
+        try:
+            response = urllib2.urlopen("http://%s/get/%s/%s" % (self.host,self.key,version))
+            html = response.read().strip()
+            cambios=json.loads(html)
+            numcambios=len(cambios)
+        except Exception:
+            self.logger.error("Server %s not found" % (self.host))
         return cambios
 
 

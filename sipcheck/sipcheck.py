@@ -39,7 +39,6 @@ class SIPCheck(Thread):
 
     def run(self):
         stimes = 0
-
         useiptables = self.config.get_general('useiptables')
         if useiptables:
             self.logger.info("Will block IPs with iptables")
@@ -59,7 +58,7 @@ class SIPCheck(Thread):
                 if tipo == "+":
                     self.logger.debug("Recieved from sinologic.net the advise to add %s" % ipaddress)
                     if not self.ignore_list.s_check(ipaddress):
-                        if not self.ip_dbs.check_bannedip(ipaddress):
+                        if len(self.ip_dbs.check_bannedip(ipaddress)) == 0:
                             self.ip_dbs.block_ip(ipaddress)
                             if useiptables:
                                 ipt.block(ipaddress)
@@ -98,7 +97,7 @@ class SIPCheck(Thread):
                                 ipt.block(ipaddress)
                                 self.logger.debug("IPT block: %s" % ipaddress)
                             if useshared:
-                                share.report(ip)
+                                share.report(ipaddress)
 
     def quit(self):
         ''' stop Thread '''
