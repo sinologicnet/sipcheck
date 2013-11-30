@@ -15,7 +15,8 @@ class WebUI(object):
         self.ip_dbs = self.init_db(self.config.get_database('file'))
 
         app.debug = True
-        app.add_url_rule('/bans/',
+
+        app.add_url_rule('/bans/<ip>',
                          view_func=BanAPI.as_view('bans', bandb=self.ip_dbs,
                         user=self.config.get_gui('user'),
                         passwd=self.config.get_gui('pass')))

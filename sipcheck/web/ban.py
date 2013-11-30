@@ -13,9 +13,15 @@ class BanAPI(MethodView):
         self.bandb = bandb
 
     @web_auth.requires_auth
-    def get(self):
+    def get(self, ip=None):
         return render_template('bans.html', bans=self.bandb.show_ips())
 
     @web_auth.requires_auth
-    def post(self):
-        print "post!"
+    def put(self, ip, block):
+        print "put!"
+        return "ok"
+
+    @web_auth.requires_auth
+    def delete(self, ip):
+        print "delete!"
+        return "ok"
