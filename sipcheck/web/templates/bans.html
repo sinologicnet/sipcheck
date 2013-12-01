@@ -44,16 +44,18 @@
 $("#nav-bans").addClass('active');
 function erase(ip) {
     console.log("Delete ip: " + ip);
-    $.ajax({ url: '/bans/' + ip, type: 'DELETE', success: function(result) {
-            // Do something with the result
+    $.ajax({ url: '/bans/' + ip, type: 'DELETE',
+        success: function(result) {
+            location.reload();
         }
     });
 }
 
 function block(ip, block) {
     console.log("Block ip: " + ip);
-    $.ajax({ url: '/bans/' + ip, type: 'PUT', data: {block:block}, success: function(result) {
-            // Do something with the result
+    $.ajax({ url: '/bans/' + ip, type: 'PUT', data: {block:block},
+        success: function(result) {
+            location.reload();
         }
     });
 }
