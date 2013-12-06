@@ -28,3 +28,7 @@ class Config(object):
     def get_ignore(self):
         ''' Return ip ranges to ignore '''
         return self.config.get('ignore', 'own').split(',')
+
+    def get_gui(self, key):
+        ''' Return value of database config '''
+        return self.config.get('gui', key)

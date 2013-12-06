@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+from sipcheck.webui import WebUI
+import logging
+import argparse
+
+if __name__ == '__main__':
+    logger = logging.getLogger('sipcheck.webui')
+    try:
+        parser = argparse.ArgumentParser(description='SIPCheck Web Inferface')
+        parser.add_argument('-c', action="store", dest="config_file")
+        cargs = parser.parse_args()
+
+        webui = WebUI(cargs.config_file)
+
+    except KeyboardInterrupt:
+        logger.error("KeyboardInterrupt form SIPCheck. Stoping")
+    finally:
+        logger.info("SIPCheck stoped")
