@@ -31,42 +31,46 @@ class SIPCheck(Thread):
         self.config = Config(config_file)
         self.setup_logger(self.config.get_general('logfile'),
             self.config.get_general('loglevel'))
+
         self.ip_dbs = self.init_db(self.config.get_database('file'))
         if self.ip_dbs is None:
             sys.exit(-1)
+
         self.ignore_list = self.load_ignored()
+
+        useiptables = self.config.get_general('useiptables')
+        if useiptables:
+            self.useiptables=useiptables
+            self.logger.info("Will block IPs with iptables")
+            self.ipt = IPTables()
+
+        useshared = self.config.get_shared('enable')
+        if useshared:
+            self.useshared=useshared
+            self.logger.info("Will report attackers from/to external server")
+            self.sharedkey = self.config.get_shared('key')
+            self.logger.debug("Read useshared as '%s'",useshared)
+
 
 
     def run(self):
         stimes = 0
-        useiptables = self.config.get_general('useiptables')
-        if useiptables:
-            self.logger.info("Will block IPs with iptables")
-            ipt = IPTables()
 
-        useshared = self.config.get_shared('enable')
-        sharedkey = self.config.get_shared('key')
-        if useshared:
-            self.logger.info("We will syncronize all the attacks with sipcheck.Sinologic.net")
-            share = ShareList(sharedkey)
-            # We'll get list of ips like [u'+', u'90.80.90.21'] (+add|-remove) plus ip address to change from version number
-            changes=share.get(0)
-            numofchanges=len(changes)
-            for change in range(0,numofchanges):
-                tipo=changes[change][0]
-                ipaddress=changes[change][1]
-                if tipo == "+":
-                    self.logger.debug("Recieved from sinologic.net the advise to add %s" % ipaddress)
-                    if not self.ignore_list.s_check(ipaddress):
-                        if len(self.ip_dbs.check_bannedip(ipaddress)) == 0:
-                            self.ip_dbs.block_ip(ipaddress)
-                            if useiptables:
-                                ipt.block(ipaddress)
-                else:
-                    self.logger.debug("Recieved from sinologic.net the advise to remove %s" % ipaddress)
-                    self.ip_dbs.unblock_ip(ipaddress)
-                    if useiptables:
-                        ipt.unblock(ipaddress)
+        ''' If we allow remote service, we connect and download all known ip attackers '''
+        if self.useshared:
+            self.share = ShareList(self.sharedkey)
+            listOfIPS=self.share.getAll()
+            self.logger.debug("Recibida lista: ");
+            for remoteIP in listOfIPS:
+                if not self.ignore_list.s_check(remoteIP):
+                    if not self.ip_dbs.check_bannedip(remoteIP):
+                        self.logger.debug("Added %s into database" % remoteIP)
+                        self.ip_dbs.block_ip(remoteIP)
+
+                    if self.useiptables:
+                        self.ipt.unblock(remoteIP)
+                        self.ipt.block(remoteIP)
+                        self.logger.debug("IP Address %s already marked as banned. Ignored" % remoteIP);
 
         asterisk_log = self.load_logfile()
 
@@ -94,10 +98,10 @@ class SIPCheck(Thread):
                             self.logger.debug("Suspicious IP has become an attacker: %s" % ipaddress)
                             self.ip_dbs.block_ip(ipaddress)
                             if useiptables:
-                                ipt.block(ipaddress)
+                                self.ipt.block(ipaddress)
                                 self.logger.debug("IPT block: %s" % ipaddress)
                             if useshared:
-                                share.report(ipaddress)
+                                self.share.report(ipaddress)
 
     def quit(self):
         ''' stop Thread '''
