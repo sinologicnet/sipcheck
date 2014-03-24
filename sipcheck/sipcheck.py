@@ -97,10 +97,10 @@ class SIPCheck(Thread):
                         if tries >= int(self.config.get_general('minticks')):
                             self.logger.debug("Suspicious IP has become an attacker: %s" % ipaddress)
                             self.ip_dbs.block_ip(ipaddress)
-                            if useiptables:
+                            if self.useiptables:
                                 self.ipt.block(ipaddress)
                                 self.logger.debug("IPT block: %s" % ipaddress)
-                            if useshared:
+                            if self.useshared:
                                 self.share.report(ipaddress)
 
     def quit(self):
