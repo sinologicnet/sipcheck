@@ -4,6 +4,7 @@
 '''
 import logging
 import os
+import subprocess
 
 class IPTables(object):
     ''' IPTables wrapper '''
@@ -24,4 +25,3 @@ class IPTables(object):
         self.logger.debug('Unblocking %s IP address' % ipaddress)
         os.system ("iptables -D INPUT -s %s -j DROP" % ipaddress)
         return True
-

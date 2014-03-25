@@ -36,7 +36,33 @@ python setup.py install
 
 We could get new user account to use shared lists.
 
-Modify configuration file to customize it.
+<h2>Configuration</h2>
+You need customize sipcheck application:
+<pre>
+[general]
+messagefile=/var/log/asterisk/messages      ; Asterisk message file. Sure you that you log errors
+loglevel=debug                              ; 
+useiptables=True                            ; If you want insert into iptables.
+minticks=5                                  ; Num of try before consider an attack
+logfile=/tmp/sipcheck.log                   ; Log file
+
+[shared]
+enable=True                                 ; Enable this if you want to report attackers to a common list
+key=494949                                  ; Personal KEY
+
+[database]
+file=/tmp/sipcheck.db                       ; Local database where all information is storaged
+
+[ignore]                                    ; List of host and network to ignored if they are detected as attackers
+own=178.60.201.227/32,127.0.0.1/32,192.168.0.0/16,10.0.0.0/12
+
+[gui]                                       ; On construction... 
+enable=True
+port=8081
+user=admin
+pass=sipcheck
+listen=127.0.0.1
+</pre>
 
 Execute the application
 <pre>./bin/sipcheck -c ./etc/sipcheck.conf</pre>

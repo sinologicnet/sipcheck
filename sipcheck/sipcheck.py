@@ -98,6 +98,7 @@ class SIPCheck(Thread):
                             self.logger.debug("Suspicious IP has become an attacker: %s" % ipaddress)
                             self.ip_dbs.block_ip(ipaddress)
                             if self.useiptables:
+                                self.ipt.unblock(ipaddress)
                                 self.ipt.block(ipaddress)
                                 self.logger.debug("IPT block: %s" % ipaddress)
                             if self.useshared:
