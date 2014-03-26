@@ -33,8 +33,18 @@ Installing the applicacion:
 <pre>cd sipcheck
 python setup.py install
 </pre>
+<p>
+We could get new user account to use shared lists.<br />
+<br />
+When you use a shared list features, you will need a "key user" that you will configure into configuration file.<br />
+This "key" will be used for ranking and fiability of the ips reported.<br />
+During the beta version time, you can get your "temporal key" entering in this page:<br />
+  <a href="http://sipcheck.sinologic.net/getKey">http://sipcheck.sinologic.net/getKey</a>
+<br />
+Although you can set "key" field as anonymous we recommend that register and use your own key.<br />
+</p>
 
-We could get new user account to use shared lists.
+
 
 <h2>Configuration</h2>
 You need customize sipcheck application:
