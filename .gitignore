@@ -9,7 +9,7 @@ MANIFEST
 *.lock
 *.DS_Store
 *.swp
-
+*.conf
 *.db
 tmp/
 *.egg-info/

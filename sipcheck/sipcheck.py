@@ -77,7 +77,6 @@ class SIPCheck(Thread):
         while self.work:
             where = asterisk_log.tell()
             line  = asterisk_log.readline()
-
             if not line:
                 if stimes is 5:
                     asterisk_log = self.load_logfile()
