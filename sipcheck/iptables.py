@@ -16,8 +16,8 @@ class IPTables(object):
 
     def block(self, ipaddress):
         ''' Set an IP adress as blocked and block with iptables '''
-        self.logger.debug('Blocking %s IP address' % ipaddress)
-        os.system ("iptables -A INPUT -s %s -j DROP" % ipaddress)
+        self.logger.info('Blocking %s IP address' % ipaddress)
+        os.system ("iptables -I INPUT -s %s -j DROP" % ipaddress)
         return True
 
     def unblock(self, ipaddress):
