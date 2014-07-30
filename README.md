@@ -29,6 +29,8 @@ Once it has identified a number of attempts from the same IP address, the system
 Downloading the application:
 <pre>git clone https://github.com/sinologicnet/sipcheck</pre>
 
+Sure yourself have installed <strong>python-setuptools</strong> package before to continue.
+
 Installing the applicacion:
 <pre>cd sipcheck
 python setup.py install
@@ -79,3 +81,18 @@ Execute the application
 
 <h2>TODO</h2>
 *  Enable IPv6 support
+
+
+<h2>Credits</h2>
+<h3>Developers</h3>
+<ul>
+    <li>Elio Rojano</li>
+    <li>Sergio Cotelo</li>
+    <li>Tomás Sahagún</li>
+    <li>Javier Vidal</li>
+</ul>
+<h3>Helpers, Colaborators and Supporters</h3>
+<ul>
+    <li>Saúl Ibarra > @saghul</li>
+    <li>Juan García > @ramses-0000</li>
+</ul>
