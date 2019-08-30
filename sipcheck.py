@@ -94,7 +94,7 @@ def successfulAuth(evento):
 
 ## Función para filtrar la cadena donde viene la IP y devolver la IP real.
 def getIP(stringip):
-    ## Recibimos IPV4/UDP/213.98.65.123/5062 y queremos obtener 213.98.65.123
+    ## Recibimos IPV4/UDP/X.X.X.X/5060 y queremos obtener X.X.X.X
     paramsIP=stringip.strip().split("/")
     salida="";
     if (len(paramsIP) > 3):
