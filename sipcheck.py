@@ -2,9 +2,18 @@
 # -*- coding: utf-8 -*-
 
 '''
-    sipcheck 3.0
+    sipCheck v.3.0
     ---------------------------
     Script que analiza el /var/log/asterisk/security con la información de seguridad de acceso y registros para bloquear las IPs de los atacantes.
+    El funcionamiento es muy sencillo:
+        - Si Asterisk detecta un intento de autentificación fallido, lo vuelca al archivo security.log
+        - Si Asterisk detecta un intento de autentificación correcto,lo vuelca al archivo security.log
+
+        Si el número de intentos fallidos de una IP supera el valor de "maxNumTries" y esa IP no está en la lista blanca, lo banea.
+        Si esa IP se autentifica correctamente alguna vez, puede ser de un cliente y lo mete en la lista blanca para evitar banearlo nuevamente.
+        Al cabo de "BLExpireTime" segundos, se elimina esa IP de la lista negra para no llenar la lista de ips que no sirven.
+        Al cabo de "WLExpireTime" segundos, se elimina esa IP de la lista blanca para no llenar la lista de ips que no sirven.
+        Por lo general, BLExpireTime debería ser menor que WLExpireTime.
 
 '''
 
@@ -12,6 +21,7 @@
 import time
 import io
 import requests
+import logging
 from threading import Thread
 from threading import RLock
 
@@ -24,7 +34,8 @@ maxNumTries = 3
 BLExpireTime = 10*60       # Blacklist
 WLExpireTime = 10*60       # Whitelist
 
-
+# Configuramos el archivo donde vamos a guardar los cambios
+logging.basicConfig(filename='/var/log/sipcheck.log',level=logging.DEBUG,format='%(asctime)s %(levelname)s: %(message)s')
 
 ## Lista de sospechosos
 ## Cada vez que se recibe un fallo de contraseña se añade (si no está en la lista blanca) la IP a la lista de sospechosos
@@ -77,7 +88,7 @@ def anadir_IP_a_listaNegra(ip):
 
 ## Función que se ejecuta cuando se recibe un "invalidPassword" (usuario o contraseña incorrecta)
 def invalidPassword(evento):
-    print("Wrong password for user "+evento['AccountID']+" from IP "+evento["RemoteAddress"]);
+    logging.debug("Received wrong password for user "+evento['AccountID']+" from IP "+evento["RemoteAddress"]);
     # Comprobamos si la IP pertenece a una IP en la lista blanca
     # Si no está en la lista blanca, incrementamos el contador hasta que el número de peticiones supere la cantidad máxima
     num = contador_tempList(evento['RemoteAddress'])
@@ -87,14 +98,14 @@ def invalidPassword(evento):
 
 ## Función que se ejecuta cuando se recibe un "successfulAuth" (contraseña correcta)
 def successfulAuth(evento):
-    print("Right password for user "+evento['AccountID']+" from IP "+evento["RemoteAddress"]);
+    logging.debug("Received right password for user "+evento['AccountID']+" from IP "+evento["RemoteAddress"]);
     # La añadimos a la lista blanca
     anadir_IP_a_listaBlanca(evento['RemoteAddress'])
 
 
 ## Función para filtrar la cadena donde viene la IP y devolver la IP real.
 def getIP(stringip):
-    ## Recibimos IPV4/UDP/X.X.X.X/5060 y queremos obtener X.X.X.X
+    ## Recibimos IPV4/UDP/X.X.X.X/5062 y queremos obtener X.X.X.X
     paramsIP=stringip.strip().split("/")
     salida="";
     if (len(paramsIP) > 3):
@@ -144,7 +155,7 @@ def expireRecord():
     listaABorrar=[]
     for t in blacklist:
         if (now - blacklist[t] > BLExpireTime):
-            print("BL: Expire time for "+t)
+            logging.info("BL: Expire time for "+t)
             listaABorrar.append(t)
     ## Y las borramos
     for t1 in listaABorrar:
@@ -154,16 +165,17 @@ def expireRecord():
     listaABorrar=[]
     for t in whitelist:
         if (now - whitelist[t] > WLExpireTime):
-            print("BL: Expire time for "+t)
+            logging.info("BL: Expire time for "+t)
             listaABorrar.append(t)
     ## Y las borramos
     for t1 in listaABorrar:
         whitelist.pop(t1, None)
 
+    '''
     print("blacklist "+str(blacklist))
     print("whitelist "+str(whitelist))
     print("templist "+str(templist))
-
+    '''
 ## Comienzo de la función principal
 def parseLog():
     global blacklist,whitelist,templist
@@ -186,6 +198,7 @@ def expire():
         time.sleep(5)
 
 ## Llamamos de forma asíncrona a las dos funciones para que cada una trabaje a su ritmo.
+logging.info('Starting SIPCheck3...')
 Thread(name='parseLog', target = parseLog).start()
 Thread(name='expireRecord', target = expire).start()
 
