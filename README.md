@@ -1,12 +1,12 @@
 <h1>SIPCheck v.3.0</h1>
 
-== Introduction
+## Introduction
 
 
-== Requirements
+## Requirements
 
 
-== How to Install
+## How to Install
 
 Debian Stretch:
 ```bash
