@@ -17,188 +17,265 @@
 
 '''
 
-
 import time
 import io
-import requests
+import os
+import time
+import socket
 import logging
+import asyncio
+from panoramisk import Manager
 from threading import Thread
 from threading import RLock
 
-lock = RLock()
+#######################################################################################################
+# Configuration variables
+#######################################################################################################
 
-# Número máximo de peticiones de contraseña inválidas antes de meterlo en la lista negra
+# Manager configuration to search the attackers
+managerHost = "127.0.0.1"
+managerPort = 45038
+managerUser = "stats"
+managerPass = "a8Rs7kqfSDw6FMUMwmL"
+
+# Logging configuration
+logLevel = "DEBUG"           # One of this possible values: DEBUG, INFO, WARNING, ERROR, CRITICAL
+logFile = "/var/log/sipcheck.log"   # Filename to dump the events and the actions
+
+# Maximun number of wrong passwords before to insert into the blacklist
 maxNumTries = 3
 
-# Número de segundos en el que un registro expirará de la lista
-BLExpireTime = 10*60       # Blacklist
-WLExpireTime = 10*60       # Whitelist
-
-# Configuramos el archivo donde vamos a guardar los cambios
-logging.basicConfig(filename='/var/log/sipcheck.log',level=logging.DEBUG,format='%(asctime)s %(levelname)s: %(message)s')
-
-## Lista de sospechosos
-## Cada vez que se recibe un fallo de contraseña se añade (si no está en la lista blanca) la IP a la lista de sospechosos
-## y cuando llega a X fallos seguidos, se bloquea (añadiéndolo a la lista negra)
-templist={}             ## lista de sospechosos que lleva el número de fallos de una IP
-
-## Lista blanca
-## Es la lista de las IPs que han confirmado que son clientes con alguna contraseña válida.
-## De esta manera evitamos meter en la lista negra a un cliente que ya esté funcionando.
-whitelist={}
-
-## Lista negra
-## Es la lista de los sospechosos que han fallado X contraseñas seguidas.
-## Debería estar sincronizado con IPTables para bloquear por red la IP atacante.
-## Una IP en la lista negra debe caducar por defecto a las 24 horas (ya que normalmente atacan desde ips vulnerables y proxys)
-blacklist={}
+# Number of seconds to expire the record into each list
+BLExpireTime = 1*60         # Time in seconds that one IP address will be holded into the blacklist
+WLExpireTime = 1*60         # Time in seconds that one IP address will be retained as a friend to trust
+TLExpireTime = 1*30         # Time in seconds that one IP address will be holded as a suspected of attack
 
 
-## Función que incrementa el contador de fallos a la vez que lo insertamos en la lista de sospechosos.
-def contador_tempList(ip):
+# Chain of IPTables that will be used to DROP or ACCEPT the attackers or friends addresses.
+iptablesChain = "INPUT"     
+
+
+
+
+#######################################################################################################
+# Code
+#######################################################################################################
+
+lock = RLock()
+
+# We connect into a Asterisk Manager (Asterisk 11 or newer with Security permissions to read)
+manager = Manager(loop=asyncio.get_event_loop(), host=managerHost, port=managerPort, username=managerUser, secret=managerPass)
+
+# Set the logging system to dump everything we do
+logging.basicConfig(filename=logFile,level=logging.DEBUG,format='%(asctime)s %(levelname)s: %(message)s')
+Log = logging.getLogger()
+level = logging.getLevelName(logLevel)
+Log.setLevel(level)
+
+# We set the lists where we storage the addresses.
+templist={}             # Suspected addresses
+whitelist={}            # Trusted addresses
+blacklist={}            # Attackers addresses
+
+
+## Function that counts the tries and insert the address into the suspected list.
+def templist_counter(ip):
     if (ip not in whitelist) and (ip not in blacklist):
         if (ip in templist):
-            templist[ip]=templist[ip]+1
+            templist[ip]['intentos']=templist[ip]['intentos']+1
         else:
-            templist[ip]=1
-        output=templist[ip]
+            templist[ip]={'intentos':1,'time':int(time.time())}
+        output=templist[ip]['intentos']
     else:
+        logging.warning("Detected wrong password for "+ip+" but this address is whitelisted.")
         output=0
     return output
 
+## Function that insert the rule to drop everything from the ip into the iptables
+def ban(ip):
+    if (not isbanned(ip)):
+        logging.info("Banned IP: "+ip)
+        myCmd = os.popen("iptables -A "+iptablesChain+" -s "+ip+" -j DROP").read()
 
-## Función que añade una IP a la lista blanca (y la saca de la lista de sospechosos)
-def anadir_IP_a_listaBlanca(ip):
+## Function that delete the rule to drop everything from the ip into the iptables
+def unban(ip):
+    if (isbanned(ip)):
+        logging.info("Unbaned IP: "+ip)
+        myCmd = os.popen("iptables -D "+iptablesChain+" -s "+ip+" -j DROP").read()
+
+##  Returns if an IP Address is the iptables list
+def isbanned(ip):
+    Out=os.popen("iptables -L "+iptablesChain+" -n").read().replace(" ","#").replace("\n","")
+    out=False
+    if ("#"+ip+"#" in Out): # we uses '#' to sure that we don't confuse with pieces of others ip addresses
+        out=True
+    return out
+
+
+
+## Function that add an IP address into a whitelist (and remove from list of suspected)
+def insert_to_whitelist(ip,hastacuando=time.time()):
     if ip not in [y for x in whitelist for y in x.split()]:
-        whitelist[ip]=int(time.time())    # Lo añadimos a la lista blanca
-        if (ip in templist):    # Lo sacamos de la lista de sospechosos (para ahorrar memoria)
+        whitelist[ip]=int(hastacuando)    # Insert into the whitelist
+        if (ip in templist):    # Extract from suspected list (to save memory)
             templist.pop(ip, None)
-        # No deberíamos tenerlo en la lista negra (ya que al estar bloqueado, no podría enviar una contraseña correcta) pero aún así, lo vamos a intentar
+        # note: I know that we should haven't this ip address into the blacklist, but if it happen, we remove too. ;)
         if (ip in blacklist):
             blacklist.pop(ip, None)
 
-
-## Función que añade una IP a la lista negra (y la saca de la lista de sospechosos)
-def anadir_IP_a_listaNegra(ip):
+## Function that add an IP address into a blacklist (and remove from list of suspected)
+def insert_to_blacklist(ip):
     if ip not in [y for x in blacklist for y in x.split()]:
-        blacklist[ip]=int(time.time());      # anadimos a la lista negra y apuntamos cuando lo hemos añadido.
-        if (ip in templist):    # Lo sacamos de la lista de sospechosos (para ahorrar memoria)
+        logging.info("BL: Detect attack from IP: '"+ip+"' (more than "+str(maxNumTries)+" wrongs passwords)")
+        blacklist[ip]=int(time.time());      # Insert the address and the time into the blacklist
+        ban(ip)
+        if (ip in templist):    # Remove from suspected list (to save memory)
             templist.pop(ip, None)
 
 
-## Función que se ejecuta cuando se recibe un "invalidPassword" (usuario o contraseña incorrecta)
+
+## Function that is executed when an 'invalidPassword' is received
 def invalidPassword(evento):
     logging.debug("Received wrong password for user "+evento['AccountID']+" from IP "+evento["RemoteAddress"]);
-    # Comprobamos si la IP pertenece a una IP en la lista blanca
-    # Si no está en la lista blanca, incrementamos el contador hasta que el número de peticiones supere la cantidad máxima
-    num = contador_tempList(evento['RemoteAddress'])
+    # We check if the IP address is in the whitelist
+    # If it isn't into the whitelist, we increment the counter until the number of tries will be greater that the 'maxNumTries' constant
+    num = templist_counter(evento['RemoteAddress'])
     if (num > maxNumTries):
-        anadir_IP_a_listaNegra(evento['RemoteAddress'])
+        insert_to_blacklist(evento['RemoteAddress'])
 
 
-## Función que se ejecuta cuando se recibe un "successfulAuth" (contraseña correcta)
+## Function that is executed when an 'successfulAuth' is received
 def successfulAuth(evento):
     logging.debug("Received right password for user "+evento['AccountID']+" from IP "+evento["RemoteAddress"]);
-    # La añadimos a la lista blanca
-    anadir_IP_a_listaBlanca(evento['RemoteAddress'])
+    # We insert the IP address into the whitelist
+    insert_to_whitelist(evento['RemoteAddress'])
 
 
-## Función para filtrar la cadena donde viene la IP y devolver la IP real.
+## Function to filter the string with IPv4 IP address from the manager object and returns just the IP address.
 def getIP(stringip):
-    ## Recibimos IPV4/UDP/X.X.X.X/5062 y queremos obtener X.X.X.X
+    ## We get the string "IPV4/UDP/X.X.X.X/5062" and we need only "X.X.X.X"
     paramsIP=stringip.strip().split("/")
     salida="";
     if (len(paramsIP) > 3):
         salida=paramsIP[2]
+        if (salida == "127.0.0.1"): # We do nothing with loopback ip
+            salida = ""
     return salida
 
+## Returns if a string is a valid IP address
+def isValidIP(address):
+    try:
+        socket.inet_pton(socket.AF_INET, address)
+    except AttributeError:
+        try:
+            socket.inet_aton(address)
+        except socket.error:
+            return False
+        return address.count('.') == 3
+    except socket.error:
+        return False
+    return True
 
-# Función para procesar cada línea que pasamos por parámetro y extraer los campos que nos interesa
-def process(line):
-    campos = line.strip().split("res_security_log.c:")
-    if (len(campos) > 1):
-        listaCampos = campos[1].split(",")
-        evento={}
-        for campovalor in listaCampos:
-            keyvalue=campovalor.split("=")
-            keyvalue[0]=keyvalue[0].strip()
-            keyvalue[1]=keyvalue[1].strip()
-            if (keyvalue[0] == "RemoteAddress"):
-                keyvalue[1] = getIP(keyvalue[1].replace('"',''))
-            evento[keyvalue[0]] = keyvalue[1].replace('"','')
 
-        #print(evento)
 
-        # Ya tenemos el evento... ahora toca analizarlo
-        if (evento["SecurityEvent"] == "InvalidPassword"):      # Se ha recibido una contraseña inválida. (comprobamos si la ip está en la lista blanca y si no, lo inscribimos en la lista de los niños malos)
-            invalidPassword(evento)
-        elif (evento["SecurityEvent"] == "SuccessfulAuth"):     # Contraseña acertada, lo sacamos de la lista de los niños malos (si estuviera) y lo apuntamos a la lista blanca.
-            successfulAuth(evento)
-
-        ## Imprimimos las listas
-        '''
-        print("TempList")
-        print(templist)
-        print("WhiteList")
-        print(whitelist)
-        print("BlackList")
-        print(blacklist)
-        '''
-
-## Función que recorre las listas buscando registros antiguos y eliminando aquellos que llevan más tiempo del conveniente (variable expireTime)
-## De esta forma evitamos tener en memoria cientos de registros
-## Primero seleccionamos los elementos a borrar y luego se borran, porque de borrarlos directamente da un RuntimeError: "dictionary changed size during iteration"
+## Function that go through the lists checking the time when the addresses was inserted and if this time is greater than the Expiretime configured, it removes the addresses of these lists.
 def expireRecord():
     now=int(time.time())
 
-    ## Seleccionamos la lista de elementos caducados en función del tiempo que llevan
+    # We search the elements with the time expired.
     listaABorrar=[]
     for t in blacklist:
         if (now - blacklist[t] > BLExpireTime):
-            logging.info("BL: Expire time for "+t)
+            logging.info("BL: Expired time for "+t)
             listaABorrar.append(t)
-    ## Y las borramos
+    # ... and we remove the elements found
     for t1 in listaABorrar:
         blacklist.pop(t1, None)
+        unban(t1)       # Lo extraemos del firewall
 
-    ## Seleccionamos la lista de elementos caducados en función del tiempo que llevan
+    # We search the elements with the time expired.
     listaABorrar=[]
     for t in whitelist:
         if (now - whitelist[t] > WLExpireTime):
-            logging.info("BL: Expire time for "+t)
+            logging.info("WL: Expired time for "+t)
             listaABorrar.append(t)
-    ## Y las borramos
+    # ... and we remove the elements found
     for t1 in listaABorrar:
         whitelist.pop(t1, None)
 
-    '''
-    print("blacklist "+str(blacklist))
-    print("whitelist "+str(whitelist))
-    print("templist "+str(templist))
-    '''
-## Comienzo de la función principal
-def parseLog():
-    global blacklist,whitelist,templist
-    f = open('/var/log/asterisk/security', 'r')             ## Abrimos el archivo /var/log/asterisk/security (que previamente hemos habilitado en /etc/asterisk/logger.conf)
-    f.seek(0, io.SEEK_END)                                  ## Nos vamos al final del fichero y empezamos a analizar los cambios
-    while True:
-        line = ''
-        while len(line) == 0 or line[-1] != '\n':           ## Analizamos cada línea nueva que vaya apareciendo en el archivo
-            tail = f.readline()
-            if tail == '':
-                time.sleep(0.1)
-                continue
-            line += tail
-        process(line.strip())                               ## Por cada línea, la enviamos a 'process' para procesarla y ver si nos interesa o no.
+    # We search the elements with the time expired.
+    listaABorrar=[]
+    for t in templist:
+        if (now - templist[t]['time'] > TLExpireTime):
+            logging.info("TL: Expired time for "+t)
+            listaABorrar.append(t)
+    # ... and we remove the elements found
+    for t1 in listaABorrar:
+        templist.pop(t1, None)
 
-## Comienzo del sistema de caducidad de registros (para evitar que haya registros permanentemente)
+    
+    # Uncomment this block to see updately the content of the lists (only for development)
+    if (logLevel == "DEBUG"):
+        print("blacklist "+str(blacklist))
+        print("whitelist "+str(whitelist))
+        print("templist "+str(templist))
+    
+
+## Function that execute "expireRecord" function each 5 seconds
 def expire():
     while True:
-        expireRecord()                                      ## Procesamos las listas para eliminar aquellos registros que han expirado
+        logging.debug("Executing expire process...")
+        expireRecord()  # We process the lists to remove the expired records
         time.sleep(5)
 
-## Llamamos de forma asíncrona a las dos funciones para que cada una trabaje a su ritmo.
-logging.info('Starting SIPCheck3...')
-Thread(name='parseLog', target = parseLog).start()
-Thread(name='expireRecord', target = expire).start()
 
+
+
+## It register the manager event that warning when the user send a right authentication
+@manager.register_event('SuccessfulAuth')
+def callback(manager, message):
+    message['RemoteAddress']=getIP(message.RemoteAddress.replace('"',''))
+    logging.debug(message)
+    successfulAuth(message)
+
+## It register the manager event that warning when the user send a wrong authentication
+@manager.register_event('InvalidPassword')
+def callback(manager, message):
+    message['RemoteAddress']=getIP(message.RemoteAddress.replace('"',''))
+    logging.debug(message)
+    invalidPassword(message)
+
+
+
+## Function that insert the addresses located in whitelist.txt file, into the whitelist without expiretime.
+def load_whitelist_file():  
+    wlfile="./whitelist.txt"
+    logging.debug("Reading "+wlfile+" to insert IP address into Whitelist table...")
+    if (os.path.exists(wlfile)):
+        with io.open(wlfile) as fp:
+            line = fp.readline()
+            cnt = 1
+            while line:
+                content = line.strip()
+                if (content != "") and (content[0] != "#") and (isValidIP(content)):
+                    insert_to_whitelist(content,time.time()+(60*60*24*365))
+                    unban(content)  # If this address has been banned sometime, we try to remove this ban
+                line = fp.readline()
+                cnt += 1
+
+## Main function
+def main():
+    logging.info('-----------------------------------------------------')
+    logging.info('Starting SIPCheck 3 ...')
+    load_whitelist_file()
+    manager.connect()
+    try:
+        # We create an asyncronous thread that check the expiretime of the lists
+        Thread(name='expireRecord', target = expire).start()
+        # Run the manager loop
+        manager.loop.run_forever()
+    except KeyboardInterrupt:
+        manager.loop.close()
+
+if __name__ == '__main__':
+    main()
