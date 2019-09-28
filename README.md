@@ -18,13 +18,28 @@ Por esta razón, hemos rediseñado desde cero esta aplicación con varias ventaj
 
 Tan solo es necesario disponer de Python 3 y las librerías definidas en el archivo `requirements.txt`
 
+`/etc/asterisk/manager.conf` must have some manager user like this (change user and password variables):
+
+```
+[CHANGETHISUSER]
+secret = CHANGETHISPASSWORD
+deny = 0.0.0.0/0.0.0.0
+permit = 127.0.0.1/255.255.255.255
+read = security
+write = system
+```
+
 
 ## How to Install
+
+
+
 
 Debian Stretch:
 ```bash
 # Download github repository
-git clone https://github.com/sinologicnet/sipcheck.git
+cd /opt
+git clone https://github.com/sinologicnet/sipcheck.git sipcheck
 cd sipcheck
 
 # Install PIP for Python3
@@ -33,10 +48,17 @@ sudo apt-get install python3-pip
 # Install the libraries required 
 sudo pip3 install -r requirements.txt
 
-# Edit sipcheck.py and modify the configuration variables as your needed
+# Important: Edit sipcheck.py file and modify the configuration variables as your needed
 nano sipcheck.py
 
 # Execute
 ./sipcheck.py
 ```
 
+If you want to install into your system as a service:
+
+```bash
+cp /opt/sipcheck/sipcheck.service /etc/systemd/system/
+systemctl enable sipcheck
+systemctl start sipcheck
+```

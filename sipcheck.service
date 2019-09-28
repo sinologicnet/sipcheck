@@ -1,0 +1,14 @@
+[Unit]
+Description=SIPCheck
+
+[Service]
+ExecStart=/opt/sipcheck/sipcheck.py
+WorkingDirectory=/opt/sipcheck
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=sipcheck
+
+[Install]
+WantedBy=multi-user.target

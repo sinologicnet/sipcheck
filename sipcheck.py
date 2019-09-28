@@ -267,6 +267,7 @@ def load_whitelist_file():
             while line:
                 content = line.strip()
                 if (content != "") and (content[0] != "#") and (isValidIP(content)):
+                    logging.info("+ Added "+content+" into whitelist during one year")
                     insert_to_whitelist(content,time.time()+(60*60*24*365))
                     unban(content)  # If this address has been banned sometime, we try to remove this ban
                 line = fp.readline()
