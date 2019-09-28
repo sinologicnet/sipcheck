@@ -32,11 +32,11 @@ from threading import RLock
 # Configuration variables
 #######################################################################################################
 
-# Manager configuration to search the attackers
-managerHost = "127.0.0.1"
-managerPort = 45038
-managerUser = "stats"
-managerPass = "a8Rs7kqfSDw6FMUMwmL"
+# Asterisk manager configuration
+managerHost = "127.0.0.1"           # Manager IP Address
+managerPort = 5038                  # Manager port
+managerUser = "manageruser"         # Manager user
+managerPass = "SuPeR@p4ssw0rd123"   # Manager password
 
 # Logging configuration
 logLevel = "DEBUG"           # One of this possible values: DEBUG, INFO, WARNING, ERROR, CRITICAL
