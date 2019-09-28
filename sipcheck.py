@@ -4,16 +4,25 @@
 '''
     sipCheck v.3.0
     ---------------------------
-    Script que analiza el /var/log/asterisk/security con la información de seguridad de acceso y registros para bloquear las IPs de los atacantes.
-    El funcionamiento es muy sencillo:
-        - Si Asterisk detecta un intento de autentificación fallido, lo vuelca al archivo security.log
-        - Si Asterisk detecta un intento de autentificación correcto,lo vuelca al archivo security.log
+    This application connects into the Asterisk Manager Interface (v11 or newer) and reads the Security Events received when some user try send
+    INVITE or REGISTER and when it happens SIPCheck classify the IP address into 'friends' or, if the user continues sending wrong passwords, 
+    into 'attackers'.
+    
+    SIPCheck counts the number of failed tries per IP Address so, if this address is not into a white list, and the tries are exceeded the limits
+    automatically will be baned during some time.
 
-        Si el número de intentos fallidos de una IP supera el valor de "maxNumTries" y esa IP no está en la lista blanca, lo banea.
-        Si esa IP se autentifica correctamente alguna vez, puede ser de un cliente y lo mete en la lista blanca para evitar banearlo nuevamente.
-        Al cabo de "BLExpireTime" segundos, se elimina esa IP de la lista negra para no llenar la lista de ips que no sirven.
-        Al cabo de "WLExpireTime" segundos, se elimina esa IP de la lista blanca para no llenar la lista de ips que no sirven.
-        Por lo general, BLExpireTime debería ser menor que WLExpireTime.
+    The new purpous of this application is ban attackers and automatically clean the IP past some time to avoid the firewall be bigger and bigger
+
+    If some IP address auth correctly, it is consider a "friend who trust" and it will be classified into white list to avoid be banned although
+    some SIP client send wrong passwords. (maybe this SIP users belongs a company with some phones and one of them are badly configured).
+
+    You can find more information at: https://github.com/sinologicnet/sipcheck
+
+    Authors: 
+        Elio Rojano, Sergio Cotelo, Javier Vidal, Tomás Sahagún
+    
+    Email: 
+        sipcheck@sinologic.net
 
 '''
 
