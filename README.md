@@ -6,16 +6,13 @@ SIPCheck is a tool that watch the authentication of users of Asterisk and bans a
 
 Unlike Fail2Ban, SIPCheck manage, not just the attacker, also the clients that you have trust so if you have SIP users that has demostrated that they are trusted, it will don't ban although we receive wrong password, because it would means that lots of SIP clients behind of this IP could be banned too.
 
-Spanish: 
-Esta nueva versión cuenta con varios cambios importantes provenientes de varios usuarios que precisaban de un sistema que rechazara los ataques
-pero sin expulsar a los clientes conocidos, ya que son muchos los problemas que son causados cuando un usuario de una gran empresa introduce mal
-una contraseña y la antigua versión, Fail2Ban o similares, banea esa dirección IP entera expulsando a todos los usuarios que hay detrás.
+For this reason, we have redesign from scratch this application with several features respect of older versions.
 
-Por esta razón, hemos rediseñado desde cero esta aplicación con varias ventajas con respecto a las versiones anteriores:
-
-- Más sencillo: Más fácil de instalar, configurar y ejecutar.
-- Más ligero: Orientado a grandes sistemas con un gran número de llamadas simultaneas, evitando acceder a logs y sistemas de registros.
-- Persistente: Si disponemos de varias direcciones IP en la lista negra (y baneadas en el firewall), al reiniciar la aplicación, volverá a actualizarse la lista negra con todas las IPs que estuvieran y volverá a insertar en el firewall dichas IP teniendo en cuenta el tiempo en el que fueron insertadas.
+**Easier**: Easy of installing, configure and execute.
+**Resources**: Oriented to great systems with a lot number of simoultaneous calls, avoiding access to log files and parsing of lots of real time information.
+**Persistent**: Don't worry if you have to restart the application or the system, SIPCheck keep the attackers into the firewall when it start again.
+**Confidable**: New system of expire time will keep the IPTable clean of old attackers avoiding unending and uncontrollable lists.
+**Control**: Using the small config file, you can control the number of tries before to ban the access, the time that attackers will be on the firewall and the time that suspected users will be under watch.
 
 ## Requirements
 
