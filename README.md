@@ -2,8 +2,11 @@
 
 ## Introduction
 
-El objetivo de SIPCheck es el de vigilar para evitar ataques de bots y usuarios maliciosos en nuestros sistemas Asterisk.
+SIPCheck is a tool that watch the authentication of users of Asterisk and bans automatically if some user (or bot) try to register o make calls using wrong passwords. 
 
+Unlike Fail2Ban, SIPCheck manage, not just the attacker, also the clients that you have trust so if you have SIP users that has demostrated that they are trusted, it will don't ban although we receive wrong password, because it would means that lots of SIP clients behind of this IP could be banned too.
+
+Spanish: 
 Esta nueva versión cuenta con varios cambios importantes provenientes de varios usuarios que precisaban de un sistema que rechazara los ataques
 pero sin expulsar a los clientes conocidos, ya que son muchos los problemas que son causados cuando un usuario de una gran empresa introduce mal
 una contraseña y la antigua versión, Fail2Ban o similares, banea esa dirección IP entera expulsando a todos los usuarios que hay detrás.
