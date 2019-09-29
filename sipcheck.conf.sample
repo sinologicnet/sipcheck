@@ -1,0 +1,37 @@
+###################################################################
+## Config file sample
+##
+## Please, create a copy of this file called `sipcheck.conf` and
+## modify as your own configuration.
+###################################################################
+
+[manager]
+# IP or hostname where is the Asterisk (generally localhost)
+host: 127.0.0.1
+port: 45038
+username: mngrUser
+password: mngrP4ssW0rd
+
+[log]
+
+# One of this possible values: DEBUG, INFO, WARNING, ERROR, CRITICAL
+level = INFO        
+# Filename where 
+file = /var/log/sipcheck.log 
+
+[attacker]
+# Maximun number of wrong passwords before to insert into the blacklist
+maxNumTries = 5             
+
+# Time in seconds that one IP address will be holded into the blacklist ()
+BLExpireTime = 86400
+
+# Time in seconds that one IP address will be retained as a friend to trust
+WLExpireTime = 21600
+
+# Time in seconds that one IP address will be holded as a suspected of attack
+TLExpireTime = 3600
+
+# Chain of IPTables that will be used to DROP or ACCEPT the attackers or friends addresses.
+iptablesChain = INPUT
+

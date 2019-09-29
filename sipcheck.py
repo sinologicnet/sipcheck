@@ -16,7 +16,11 @@
     If some IP address auth correctly, it is consider a "friend who trust" and it will be classified into white list to avoid be banned although
     some SIP client send wrong passwords. (maybe this SIP users belongs a company with some phones and one of them are badly configured).
 
-    You can find more information at: https://github.com/sinologicnet/sipcheck
+    You can find more information at: 
+        https://github.com/sinologicnet/sipcheck
+
+    If you have questions or suggestions, you can use this page: 
+        https://github.com/sinologicnet/sipcheck/issues
 
     Authors: 
         Elio Rojano, Sergio Cotelo, Javier Vidal, Tomás Sahagún
@@ -33,44 +37,49 @@ import time
 import socket
 import logging
 import asyncio
+import configparser
 from panoramisk import Manager
 from threading import Thread
 from threading import RLock
 
-#######################################################################################################
-# Configuration variables
-#######################################################################################################
-
-# Asterisk manager configuration
-managerHost = "127.0.0.1"           # Manager IP Address
-managerPort = 5038                  # Manager port
-managerUser = "manageruser"         # Manager user
-managerPass = "SuPeR@p4ssw0rd123"   # Manager password
-
-# Logging configuration
-logLevel = "DEBUG"           # One of this possible values: DEBUG, INFO, WARNING, ERROR, CRITICAL
-logFile = "/var/log/sipcheck.log"   # Filename to dump the events and the actions
-
-# Maximun number of wrong passwords before to insert into the blacklist
-maxNumTries = 3
-
-# Number of seconds to expire the record into each list
-BLExpireTime = 1*60         # Time in seconds that one IP address will be holded into the blacklist
-WLExpireTime = 1*60         # Time in seconds that one IP address will be retained as a friend to trust
-TLExpireTime = 1*30         # Time in seconds that one IP address will be holded as a suspected of attack
-
-
-# Chain of IPTables that will be used to DROP or ACCEPT the attackers or friends addresses.
-iptablesChain = "INPUT"     
-
-
-
-
-#######################################################################################################
-# Code
-#######################################################################################################
-
 lock = RLock()
+
+# We parser the config file
+config = configparser.ConfigParser()
+config.read('sipcheck.conf')
+
+if ('manager' in config):
+    managerHost = config['manager']['host']
+    managerPort = int(config['manager']['port'])
+    managerUser = config['manager']['username']
+    managerPass = config['manager']['password']
+else:
+    managerHost = "127.0.0.1"
+    managerPort = 5038
+    managerUser = "manageruser"
+    managerPass = "SuPeR@p4ssw0rd123"
+
+if ('log' in config):
+    logLevel = config['log']['level']
+    logFile = config['log']['file']
+else:
+    logLevel = "DEBUG"          
+    logFile = "/var/log/sipcheck.log"
+
+if ('attacker' in config):
+    maxNumTries = int(config['attacker']['maxNumTries'])
+    BLExpireTime = int(config['attacker']['BLExpireTime'])
+    WLExpireTime = int(config['attacker']['WLExpireTime'])
+    TLExpireTime = int(config['attacker']['TLExpireTime'])
+    iptablesChain = config['attacker']['iptablesChain']
+else:
+    maxNumTries = 5
+    BLExpireTime = 86400
+    WLExpireTime = 21600
+    TLExpireTime = 3600
+    iptablesChain = "INPUT"
+
+
 
 # We connect into a Asterisk Manager (Asterisk 11 or newer with Security permissions to read)
 manager = Manager(loop=asyncio.get_event_loop(), host=managerHost, port=managerPort, username=managerUser, secret=managerPass)
@@ -80,6 +89,13 @@ logging.basicConfig(filename=logFile,level=logging.DEBUG,format='%(asctime)s %(l
 Log = logging.getLogger()
 level = logging.getLevelName(logLevel)
 Log.setLevel(level)
+
+
+logging.debug("Configured Blacklist expire time: "+str(BLExpireTime))
+logging.debug("Configured Whitelist expire time: "+str(WLExpireTime))
+logging.debug("Configured Templist expire time: "+str(TLExpireTime))
+
+
 
 # We set the lists where we storage the addresses.
 templist={}             # Suspected addresses
@@ -167,8 +183,6 @@ def getIP(stringip):
     salida="";
     if (len(paramsIP) > 3):
         salida=paramsIP[2]
-        if (salida == "127.0.0.1"): # We do nothing with loopback ip
-            salida = ""
     return salida
 
 ## Returns if a string is a valid IP address
@@ -244,8 +258,9 @@ def expire():
 @manager.register_event('SuccessfulAuth')
 def callback(manager, message):
     message['RemoteAddress']=getIP(message.RemoteAddress.replace('"',''))
-    logging.debug(message)
-    successfulAuth(message)
+    if (message['RemoteAddress'] != "127.0.0.1"):
+        logging.debug(message)
+        successfulAuth(message)
 
 ## It register the manager event that warning when the user send a wrong authentication
 @manager.register_event('InvalidPassword')

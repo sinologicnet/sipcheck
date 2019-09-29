@@ -3,6 +3,7 @@
 build/*
 dist/*
 MANIFEST
+sipcheck.conf
 
 ## generic files to ignore
 *~
