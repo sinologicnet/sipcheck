@@ -8,11 +8,11 @@ Unlike Fail2Ban, SIPCheck manage, not just the attacker, also the clients that y
 
 For this reason, we have redesign from scratch this application with several features respect of older versions.
 
-**Easier**: Easy of installing, configure and execute.
-**Resources**: Oriented to great systems with a lot number of simoultaneous calls, avoiding access to log files and parsing of lots of real time information.
-**Persistent**: Don't worry if you have to restart the application or the system, SIPCheck keep the attackers into the firewall when it start again.
-**Confidable**: New system of expire time will keep the IPTable clean of old attackers avoiding unending and uncontrollable lists.
-**Control**: Using the small config file, you can control the number of tries before to ban the access, the time that attackers will be on the firewall and the time that suspected users will be under watch.
+- **Easier**: Easy of installing, configure and execute.
+- **Resources**: Oriented to great systems with a lot number of simoultaneous calls, avoiding access to log files and parsing of lots of real time information.
+- **Persistent**: Don't worry if you have to restart the application or the system, SIPCheck keep the attackers into the firewall when it start again.
+- **Confidable**: New system of expire time will keep the IPTable clean of old attackers avoiding unending and uncontrollable lists.
+- **Control**: Using the small config file `sipcheck.conf`, you can control the number of tries before to ban the access, the time that attackers will be on the firewall and the time that suspected users will be under watch.
 
 ## Requirements
 
