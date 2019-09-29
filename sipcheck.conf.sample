@@ -8,12 +8,11 @@
 [manager]
 # IP or hostname where is the Asterisk (generally localhost)
 host: 127.0.0.1
-port: 45038
+port: 5038
 username: mngrUser
 password: mngrP4ssW0rd
 
 [log]
-
 # One of this possible values: DEBUG, INFO, WARNING, ERROR, CRITICAL
 level = INFO        
 # Filename where 

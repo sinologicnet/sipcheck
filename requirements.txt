@@ -1,1 +1,2 @@
 panoramisk==1.3
+configparser==4.0.2
