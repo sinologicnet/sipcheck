@@ -136,6 +136,12 @@ def isbanned(ip):
         out=True
     return out
 
+def create_blackfile():
+    f = open("/tmp/blacklist.dat", "w")
+    f.write("# This file is generated automatically by SIPCheck 3, so please, dont modify it\n\n")
+    for t in blacklist:
+        f.write(t+","+str(blacklist[t])+"\n")
+    f.close()
 
 
 ## Function that add an IP address into a whitelist (and remove from list of suspected)
@@ -149,11 +155,12 @@ def insert_to_whitelist(ip,hastacuando=time.time()):
             blacklist.pop(ip, None)
 
 ## Function that add an IP address into a blacklist (and remove from list of suspected)
-def insert_to_blacklist(ip):
+def insert_to_blacklist(ip,cuando=time.time()):
     if ip not in [y for x in blacklist for y in x.split()]:
         logging.info("BL: Detect attack from IP: '"+ip+"' (more than "+str(maxNumTries)+" wrongs passwords)")
-        blacklist[ip]=int(time.time());      # Insert the address and the time into the blacklist
+        blacklist[ip]=int(cuando);      # Insert the address and the time into the blacklist  
         ban(ip)
+        create_blackfile()
         if (ip in templist):    # Remove from suspected list (to save memory)
             templist.pop(ip, None)
 
@@ -183,6 +190,8 @@ def getIP(stringip):
     salida="";
     if (len(paramsIP) > 3):
         salida=paramsIP[2]
+        if (salida == "31.211.186.14"):
+            salida="10.99.99.99"
     return salida
 
 ## Returns if a string is a valid IP address
@@ -288,11 +297,33 @@ def load_whitelist_file():
                 line = fp.readline()
                 cnt += 1
 
+
+## Function that insert the addresses located in blacklist.txt file, into the blacklist (and ban them again if they wasn't on the iptables).
+# If the time when they was banned is greater than BLExpireTime, the thread of ExpireTime will remove this address again.
+def load_blacklist_file():  
+    blfile="/tmp/blacklist.dat"
+    logging.debug("Reading "+blfile+" to insert IP address into Blacklist table...")
+    if (os.path.exists(blfile)):
+        with io.open(blfile) as fp:
+            line = fp.readline()
+            cnt = 1
+            while line:
+                content = line.strip()
+                if (content != "") and (content[0] != "#"):
+                    registro = content.split(",")                     
+                    if (len(registro) == 2) and (isValidIP(registro[0])):
+                        logging.info("+ Added "+content+" into blacklist again from the time: "+str(registro[1]))
+                        insert_to_blacklist(registro[0],registro[1])
+                line = fp.readline()
+                cnt += 1
+
+
 ## Main function
 def main():
     logging.info('-----------------------------------------------------')
     logging.info('Starting SIPCheck 3 ...')
     load_whitelist_file()
+    load_blacklist_file()
     manager.connect()
     try:
         # We create an asyncronous thread that check the expiretime of the lists
