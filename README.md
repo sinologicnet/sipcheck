@@ -12,15 +12,17 @@ Por esta razón, hemos rediseñado desde cero esta aplicación con varias ventaj
 
 - Más sencillo: Más fácil de instalar, configurar y ejecutar.
 - Más ligero: Orientado a grandes sistemas con un gran número de llamadas simultaneas, evitando acceder a logs y sistemas de registros.
-
+- Persistente: Si disponemos de varias direcciones IP en la lista negra (y baneadas en el firewall), al reiniciar la aplicación, volverá a actualizarse la lista negra con todas las IPs que estuvieran y volverá a insertar en el firewall dichas IP teniendo en cuenta el tiempo en el que fueron insertadas.
 
 ## Requirements
 
-Tan solo es necesario disponer de Python 3 y las librerías definidas en el archivo `requirements.txt`
+### Python 3
+SIPCheck 3 works using Python 3 and the libraries defined in `requirements.txt`
 
+### Asterisk manager account
 `/etc/asterisk/manager.conf` must have some manager user like this (change user and password variables):
 
-```
+```ini
 [CHANGETHISUSER]
 secret = CHANGETHISPASSWORD
 deny = 0.0.0.0/0.0.0.0
@@ -32,15 +34,10 @@ write = system
 
 ## How to Install
 
-
-
-
-Debian Stretch:
 ```bash
 # Download github repository
-cd /opt
-git clone https://github.com/sinologicnet/sipcheck.git sipcheck
-cd sipcheck
+git clone https://github.com/sinologicnet/sipcheck.git /opt/sipcheck
+cd /opt/sipcheck
 
 # Install PIP for Python3
 sudo apt-get install python3-pip
@@ -48,17 +45,20 @@ sudo apt-get install python3-pip
 # Install the libraries required 
 sudo pip3 install -r requirements.txt
 
-# Important: Edit sipcheck.py file and modify the configuration variables as your needed
-nano sipcheck.py
+# Copy the sample of configuration file into a official configuration file
+cp sipcheck.conf.sample sipcheck.conf
 
-# Execute
-./sipcheck.py
-```
+# Edit this file to configure SIPCheck
+nano sipcheck.conf
 
-If you want to install into your system as a service:
-
-```bash
+# Insert the script into systemd
 cp /opt/sipcheck/sipcheck.service /etc/systemd/system/
 systemctl enable sipcheck
+
+# Start the application
 systemctl start sipcheck
+
+# Check if everything is working fine
+tail -f /var/log/sipcheck.log
 ```
+
