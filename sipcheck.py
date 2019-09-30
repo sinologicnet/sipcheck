@@ -104,18 +104,21 @@ blacklist={}            # Attackers addresses
 
 
 ## Function that counts the tries and insert the address into the suspected list.
-def templist_counter(ip,how=1.0):
+def templist_counter(ip,score=1.0):
     if (ip not in whitelist) and (ip not in blacklist):
         if (ip in templist):
-            templist[ip]['intentos']=templist[ip]['intentos']+how
+            templist[ip]['intentos']=templist[ip]['intentos']+score
         else:
-            templist[ip]={'intentos':how,'time':int(time.time())}
+            templist[ip]={'intentos':score,'time':int(time.time())}
         output=templist[ip]['intentos']
     elif (ip in whitelist):
-        logging.warning("Detected wrong password for "+ip+" but this address is whitelisted.")
+        if (score < 1):
+            logging.warning("Detected INVITE from "+ip+" but this address is whitelisted.")
+        else:
+            logging.warning("Detected wrong password for "+ip+" but this address is whitelisted.")
         output=0
     else:   # It shouldn't happen
-        logging.warning("Detected wrong password for "+ip+" but this address is blacklisted.")
+        logging.warning("Detected suspected behaviour for "+ip+" but this address is blacklisted.")
         output=0
     return output
 
