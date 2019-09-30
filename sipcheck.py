@@ -104,15 +104,18 @@ blacklist={}            # Attackers addresses
 
 
 ## Function that counts the tries and insert the address into the suspected list.
-def templist_counter(ip):
+def templist_counter(ip,how=1.0):
     if (ip not in whitelist) and (ip not in blacklist):
         if (ip in templist):
-            templist[ip]['intentos']=templist[ip]['intentos']+1
+            templist[ip]['intentos']=templist[ip]['intentos']+how
         else:
-            templist[ip]={'intentos':1,'time':int(time.time())}
+            templist[ip]={'intentos':how,'time':int(time.time())}
         output=templist[ip]['intentos']
-    else:
+    elif (ip in whitelist):
         logging.warning("Detected wrong password for "+ip+" but this address is whitelisted.")
+        output=0
+    else:   # It shouldn't happen
+        logging.warning("Detected wrong password for "+ip+" but this address is blacklisted.")
         output=0
     return output
 
@@ -171,7 +174,16 @@ def invalidPassword(evento):
     logging.debug("Received wrong password for user "+evento['AccountID']+" from IP "+evento["RemoteAddress"]);
     # We check if the IP address is in the whitelist
     # If it isn't into the whitelist, we increment the counter until the number of tries will be greater that the 'maxNumTries' constant
-    num = templist_counter(evento['RemoteAddress'])
+    num = templist_counter(evento['RemoteAddress'],1.0)
+    if (num > maxNumTries):
+        insert_to_blacklist(evento['RemoteAddress'])
+
+## Function that is executed when an 'invalidPassword' is received
+def inviteSend(evento):
+    logging.debug("Received invite user "+evento['AccountID']+" from IP "+evento["RemoteAddress"]);
+    # We check if the IP address is in the whitelist
+    # If it isn't into the whitelist, we increment the counter until the number of tries will be greater that the 'maxNumTries' constant
+    num = templist_counter(evento['RemoteAddress'],0.4)
     if (num > maxNumTries):
         insert_to_blacklist(evento['RemoteAddress'])
 
@@ -190,8 +202,6 @@ def getIP(stringip):
     salida="";
     if (len(paramsIP) > 3):
         salida=paramsIP[2]
-        if (salida == "31.211.186.14"):
-            salida="10.99.99.99"
     return salida
 
 ## Returns if a string is a valid IP address
@@ -277,6 +287,13 @@ def callback(manager, message):
     message['RemoteAddress']=getIP(message.RemoteAddress.replace('"',''))
     logging.debug(message)
     invalidPassword(message)
+
+## It register the manager event that warning when the user send a wrong authentication
+@manager.register_event('ChallengeSent')
+def callback(manager, message):
+    message['RemoteAddress']=getIP(message.RemoteAddress.replace('"',''))
+    logging.debug(message)
+    inviteSend(message)
 
 
 
