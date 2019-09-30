@@ -16,6 +16,9 @@ For this reason, we have redesign from scratch this application with several fea
 
 ## Requirements
 
+SIP Check requires been executed in the same system where Asterisk run. (it could run in other system but the firewall will be used in the same system where it run).
+SIPCheck needs **root privileges** to be able to insert and remove rules into the firewall.
+
 ### Python 3
 SIPCheck 3 works using Python 3 and the libraries defined in `requirements.txt`
 
