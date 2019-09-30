@@ -199,7 +199,7 @@ def insert_to_blacklist(ip,cuando=time.time()):
 
 ## Function that is executed when an 'invalidPassword' is received
 def invalidPassword(evento):
-    logging.debug("Received wrong password for user "+evento['AccountID']+" from IP "+evento["RemoteAddress"]);
+    logging.warning("Received wrong password for user "+evento['AccountID']+" from IP "+evento["RemoteAddress"]);
     # We check if the IP address is in the whitelist
     # If it isn't into the whitelist, we increment the counter until the number of tries will be greater that the 'maxNumTries' constant
     num = templist_counter(evento['RemoteAddress'],1.0)
@@ -283,9 +283,11 @@ def expireRecord():
     for t1 in listaABorrar:
         templist.pop(t1, None)
 
+
     
     # Uncomment this block to see updately the content of the lists (only for development)
     if (logLevel == "DEBUG"):
+        print("-----------| "+time.strftime('%y-%m-%d %T')+" |---------------")
         print("blacklist "+str(blacklist))
         print("whitelist "+str(whitelist))
         print("templist "+str(templist))
@@ -358,8 +360,9 @@ def load_blacklist_file():
                 if (content != "") and (content[0] != "#"):
                     registro = content.split(",")                     
                     if (len(registro) == 2) and (isValidIP(registro[0])):
-                        logging.info("+ Added "+content+" into blacklist again from the time: "+str(registro[1]))
-                        insert_to_blacklist(registro[0],registro[1])
+                        if (content not in whitelist):
+                            logging.info("+ Added "+content+" into blacklist again from the time: "+str(registro[1]))
+                            insert_to_blacklist(registro[0],registro[1])
                 line = fp.readline()
                 cnt += 1
 
@@ -368,8 +371,8 @@ def load_blacklist_file():
 def main():
     logging.info('-----------------------------------------------------')
     logging.info('Starting SIPCheck 3 ...')
-    load_whitelist_file()
     load_blacklist_file()
+    load_whitelist_file()
     manager.connect()
     try:
         # We create an asyncronous thread that check the expiretime of the lists
