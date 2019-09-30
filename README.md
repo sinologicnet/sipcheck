@@ -22,6 +22,7 @@ SIPCheck 3 works using Python 3 and the libraries defined in `requirements.txt`
 ### Asterisk manager account
 `/etc/asterisk/manager.conf` must have some manager user like this (change user and password variables):
 
+You have create a new user of [Asterisk Manager Interface](https://wiki.asterisk.org/wiki/display/AST/The+Asterisk+Manager+TCP+IP+API).
 ```ini
 [CHANGETHISUSER]
 secret = CHANGETHISPASSWORD
@@ -31,6 +32,10 @@ read = security
 write = system
 ```
 
+Once created/modified this user, you have to reload manager configuration:
+```bash
+asterisk -rx 'manager reload'
+```
 
 ## How to Install
 
@@ -39,8 +44,11 @@ write = system
 git clone https://github.com/sinologicnet/sipcheck.git /opt/sipcheck
 cd /opt/sipcheck
 
+# Update repositories
+apt-get update
+
 # Install PIP for Python3
-sudo apt-get install python3-pip
+apt-get install python3-pip
 
 # Install the libraries required 
 sudo pip3 install -r requirements.txt
