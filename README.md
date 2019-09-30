@@ -51,13 +51,16 @@ apt-get update
 apt-get install python3-pip
 
 # Install the libraries required 
-sudo pip3 install -r requirements.txt
+pip3 install -r requirements.txt
 
 # Copy the sample of configuration file into a official configuration file
 cp sipcheck.conf.sample sipcheck.conf
 
 # Edit this file to configure SIPCheck
 nano sipcheck.conf
+
+# Make executable sipcheck.py
+chmod 777 sipcheck.py
 
 # Insert the script into systemd
 cp /opt/sipcheck/sipcheck.service /etc/systemd/system/
