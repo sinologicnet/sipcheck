@@ -68,6 +68,7 @@ else:
 
 if ('attacker' in config):
     maxNumTries = int(config['attacker']['maxNumTries'])
+    maxNumInvitesWithoutAuth = int(config['attacker']['maxNumInvites'])
     BLExpireTime = int(config['attacker']['BLExpireTime'])
     WLExpireTime = int(config['attacker']['WLExpireTime'])
     TLExpireTime = int(config['attacker']['TLExpireTime'])
@@ -101,6 +102,7 @@ logging.debug("Configured Templist expire time: "+str(TLExpireTime))
 templist={}             # Suspected addresses
 whitelist={}            # Trusted addresses
 blacklist={}            # Attackers addresses
+invitelist={}           # Invite control
 
 
 ## Function that counts the tries and insert the address into the suspected list.
@@ -121,6 +123,22 @@ def templist_counter(ip,score=1.0):
         logging.warning("Detected suspected behaviour for "+ip+" but this address is blacklisted.")
         output=0
     return output
+
+
+## Function that counts the tries and insert the address into the suspected list.
+def invitelist_counter(ip,score=1.0):
+    if (ip not in whitelist) and (ip not in blacklist):
+        if (ip in invitelist):
+            invitelist[ip]['veces']=invitelist[ip]['veces']+score
+        else:
+            invitelist[ip]={'veces':score,'time':int(time.time())}
+        output=invitelist[ip]['veces']
+    else:   # It shouldn't happen
+        output=0
+    return output
+
+
+
 
 ## Function that insert the rule to drop everything from the ip into the iptables
 def ban(ip):
@@ -150,12 +168,16 @@ def create_blackfile():
     f.close()
 
 
+
+
 ## Function that add an IP address into a whitelist (and remove from list of suspected)
 def insert_to_whitelist(ip,hastacuando=time.time()):
     if ip not in [y for x in whitelist for y in x.split()]:
         whitelist[ip]=int(hastacuando)    # Insert into the whitelist
         if (ip in templist):    # Extract from suspected list (to save memory)
             templist.pop(ip, None)
+        if (ip in invitelist):
+            invitelist.pop(ip, None)
         # note: I know that we should haven't this ip address into the blacklist, but if it happen, we remove too. ;)
         if (ip in blacklist):
             blacklist.pop(ip, None)
@@ -163,12 +185,15 @@ def insert_to_whitelist(ip,hastacuando=time.time()):
 ## Function that add an IP address into a blacklist (and remove from list of suspected)
 def insert_to_blacklist(ip,cuando=time.time()):
     if ip not in [y for x in blacklist for y in x.split()]:
-        logging.info("BL: Detect attack from IP: '"+ip+"' (more than "+str(maxNumTries)+" wrongs passwords)")
+        logging.info("BL: Detect attack from IP: '"+ip+"' (Banning address)")
         blacklist[ip]=int(cuando);      # Insert the address and the time into the blacklist  
         ban(ip)
         create_blackfile()
         if (ip in templist):    # Remove from suspected list (to save memory)
             templist.pop(ip, None)
+        if (ip in invitelist):
+            invitelist.pop(ip, None)
+
 
 
 
@@ -181,13 +206,13 @@ def invalidPassword(evento):
     if (num > maxNumTries):
         insert_to_blacklist(evento['RemoteAddress'])
 
-## Function that is executed when an 'invalidPassword' is received
+## Function that is executed when an 'ChallengeSent' is received
 def inviteSend(evento):
     logging.debug("Received invite user "+evento['AccountID']+" from IP "+evento["RemoteAddress"]);
     # We check if the IP address is in the whitelist
     # If it isn't into the whitelist, we increment the counter until the number of tries will be greater that the 'maxNumTries' constant
-    num = templist_counter(evento['RemoteAddress'],0.4)
-    if (num > maxNumTries):
+    num = invitelist_counter(evento['RemoteAddress'],1.0)
+    if (num > maxNumInvitesWithoutAuth):
         insert_to_blacklist(evento['RemoteAddress'])
 
 
@@ -264,12 +289,13 @@ def expireRecord():
         print("blacklist "+str(blacklist))
         print("whitelist "+str(whitelist))
         print("templist "+str(templist))
+        print("invitelist "+str(invitelist))
     
 
 ## Function that execute "expireRecord" function each 5 seconds
 def expire():
     while True:
-        logging.debug("Executing expire process...")
+        #logging.debug("Executing expire process...")
         expireRecord()  # We process the lists to remove the expired records
         time.sleep(5)
 
