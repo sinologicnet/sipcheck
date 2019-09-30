@@ -22,6 +22,9 @@ file = /var/log/sipcheck.log
 # Maximun number of wrong passwords before to insert into the blacklist
 maxNumTries = 5             
 
+# Maximum number of INVITES without auth allowed before to consider it an attack
+maxNumInvites = 4
+
 # Time in seconds that one IP address will be holded into the blacklist ()
 BLExpireTime = 86400
 
