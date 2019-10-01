@@ -122,6 +122,9 @@ def templist_counter(ip,score=1.0):
     else:   # It shouldn't happen
         logging.warning("Detected suspected behaviour for "+ip+" but this address is blacklisted.")
         output=0
+    
+    
+
     return output
 
 
@@ -135,6 +138,9 @@ def invitelist_counter(ip,score=1.0):
         output=invitelist[ip]['veces']
     else:   # It shouldn't happen
         output=0
+
+    
+
     return output
 
 
@@ -145,12 +151,16 @@ def ban(ip):
     if (not isbanned(ip)):
         logging.info("Banned IP: "+ip)
         myCmd = os.popen("iptables -A "+iptablesChain+" -s "+ip+" -j DROP").read()
+    
+
 
 ## Function that delete the rule to drop everything from the ip into the iptables
 def unban(ip):
     if (isbanned(ip)):
         logging.info("Unbaned IP: "+ip)
         myCmd = os.popen("iptables -D "+iptablesChain+" -s "+ip+" -j DROP").read()
+    
+
 
 ##  Returns if an IP Address is the iptables list
 def isbanned(ip):
@@ -318,14 +328,14 @@ def callback(manager, message):
     message['RemoteAddress']=getIP(message.RemoteAddress.replace('"',''))
     logging.debug(message)
     invalidPassword(message)
-
+'''
 ## It register the manager event that warning when the user send a wrong authentication
 @manager.register_event('ChallengeSent')
 def callback(manager, message):
     message['RemoteAddress']=getIP(message.RemoteAddress.replace('"',''))
     logging.debug(message)
     inviteSend(message)
-
+'''
 
 
 ## Function that insert the addresses located in whitelist.txt file, into the whitelist without expiretime.
