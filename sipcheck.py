@@ -33,7 +33,6 @@
 import time
 import io
 import os
-import time
 import socket
 import logging
 import asyncio
@@ -91,19 +90,15 @@ Log = logging.getLogger()
 level = logging.getLevelName(logLevel)
 Log.setLevel(level)
 
-
 logging.debug("Configured Blacklist expire time: "+str(BLExpireTime))
 logging.debug("Configured Whitelist expire time: "+str(WLExpireTime))
 logging.debug("Configured Templist expire time: "+str(TLExpireTime))
-
-
 
 # We set the lists where we storage the addresses.
 templist={}             # Suspected addresses
 whitelist={}            # Trusted addresses
 blacklist={}            # Attackers addresses
 invitelist={}           # Invite control
-
 
 ## Function that counts the tries and insert the address into the suspected list.
 def templist_counter(ip,score=1.0):
@@ -122,8 +117,6 @@ def templist_counter(ip,score=1.0):
     else:   # It shouldn't happen
         logging.warning("Detected suspected behaviour for "+ip+" but this address is blacklisted.")
         output=0
-    
-    
 
     return output
 
@@ -139,11 +132,7 @@ def invitelist_counter(ip,score=1.0):
     else:   # It shouldn't happen
         output=0
 
-    
-
     return output
-
-
 
 
 ## Function that insert the rule to drop everything from the ip into the iptables
@@ -151,7 +140,6 @@ def ban(ip):
     if (not isbanned(ip)):
         logging.info("Banned IP: "+ip)
         myCmd = os.popen("iptables -A "+iptablesChain+" -s "+ip+" -j DROP").read()
-    
 
 
 ## Function that delete the rule to drop everything from the ip into the iptables
@@ -159,7 +147,6 @@ def unban(ip):
     if (isbanned(ip)):
         logging.info("Unbaned IP: "+ip)
         myCmd = os.popen("iptables -D "+iptablesChain+" -s "+ip+" -j DROP").read()
-    
 
 
 ##  Returns if an IP Address is the iptables list
@@ -170,14 +157,13 @@ def isbanned(ip):
         out=True
     return out
 
+
 def create_blackfile():
     f = open("/tmp/blacklist.dat", "w")
     f.write("# This file is generated automatically by SIPCheck 3, so please, dont modify it\n\n")
     for t in blacklist:
         f.write(t+","+str(blacklist[t])+"\n")
     f.close()
-
-
 
 
 ## Function that add an IP address into a whitelist (and remove from list of suspected)
@@ -192,6 +178,7 @@ def insert_to_whitelist(ip,hastacuando=time.time()):
         if (ip in blacklist):
             blacklist.pop(ip, None)
 
+
 ## Function that add an IP address into a blacklist (and remove from list of suspected)
 def insert_to_blacklist(ip,cuando=time.time()):
     if ip not in [y for x in blacklist for y in x.split()]:
@@ -205,8 +192,6 @@ def insert_to_blacklist(ip,cuando=time.time()):
             invitelist.pop(ip, None)
 
 
-
-
 ## Function that is executed when an 'invalidPassword' is received
 def invalidPassword(evento):
     logging.warning("Received wrong password for user "+evento['AccountID']+" from IP "+evento["RemoteAddress"]);
@@ -215,6 +200,7 @@ def invalidPassword(evento):
     num = templist_counter(evento['RemoteAddress'],1.0)
     if (num > maxNumTries):
         insert_to_blacklist(evento['RemoteAddress'])
+
 
 ## Function that is executed when an 'ChallengeSent' is received
 def inviteSend(evento):
@@ -237,10 +223,11 @@ def successfulAuth(evento):
 def getIP(stringip):
     ## We get the string "IPV4/UDP/X.X.X.X/5062" and we need only "X.X.X.X"
     paramsIP=stringip.strip().split("/")
-    salida="";
+    salida=""
     if (len(paramsIP) > 3):
         salida=paramsIP[2]
     return salida
+
 
 ## Returns if a string is a valid IP address
 def isValidIP(address):
@@ -257,17 +244,16 @@ def isValidIP(address):
     return True
 
 
-
 ## Function that go through the lists checking the time when the addresses was inserted and if this time is greater than the Expiretime configured, it removes the addresses of these lists.
 def expireRecord():
     now=int(time.time())
-
     # We search the elements with the time expired.
     listaABorrar=[]
     for t in blacklist:
         if (now - blacklist[t] > BLExpireTime):
             logging.info("BL: Expired time for "+t)
             listaABorrar.append(t)
+
     # ... and we remove the elements found
     for t1 in listaABorrar:
         blacklist.pop(t1, None)
@@ -293,8 +279,6 @@ def expireRecord():
     for t1 in listaABorrar:
         templist.pop(t1, None)
 
-
-    
     # Uncomment this block to see updately the content of the lists (only for development)
     if (logLevel == "DEBUG"):
         print("-----------| "+time.strftime('%y-%m-%d %T')+" |---------------")
@@ -302,7 +286,7 @@ def expireRecord():
         print("whitelist "+str(whitelist))
         print("templist "+str(templist))
         print("invitelist "+str(invitelist))
-    
+
 
 ## Function that execute "expireRecord" function each 5 seconds
 def expire():
@@ -310,8 +294,6 @@ def expire():
         #logging.debug("Executing expire process...")
         expireRecord()  # We process the lists to remove the expired records
         time.sleep(5)
-
-
 
 
 ## It register the manager event that warning when the user send a right authentication
@@ -322,12 +304,15 @@ def callback(manager, message):
         logging.debug(message)
         successfulAuth(message)
 
+
 ## It register the manager event that warning when the user send a wrong authentication
 @manager.register_event('InvalidPassword')
 def callback(manager, message):
     message['RemoteAddress']=getIP(message.RemoteAddress.replace('"',''))
     logging.debug(message)
     invalidPassword(message)
+
+
 '''
 ## It register the manager event that warning when the user send a wrong authentication
 @manager.register_event('ChallengeSent')
@@ -391,6 +376,7 @@ def main():
         manager.loop.run_forever()
     except KeyboardInterrupt:
         manager.loop.close()
+
 
 if __name__ == '__main__':
     main()
