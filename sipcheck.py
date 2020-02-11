@@ -62,7 +62,7 @@ if ('log' in config):
     logLevel = config['log']['level']
     logFile = config['log']['file']
 else:
-    logLevel = "DEBUG"          
+    logLevel = "DEBUG"
     logFile = "/var/log/sipcheck.log"
 
 if ('attacker' in config):
@@ -139,21 +139,21 @@ def invitelist_counter(ip,score=1.0):
 def ban(ip):
     if (not isbanned(ip)):
         logging.info("Banned IP: "+ip)
-        myCmd = os.popen("iptables -A "+iptablesChain+" -s "+ip+" -j DROP").read()
+        os.popen("iptables -A "+iptablesChain+" -s "+ip+" -j DROP")
 
 
 ## Function that delete the rule to drop everything from the ip into the iptables
 def unban(ip):
     if (isbanned(ip)):
         logging.info("Unbaned IP: "+ip)
-        myCmd = os.popen("iptables -D "+iptablesChain+" -s "+ip+" -j DROP").read()
+        os.popen("iptables -D "+iptablesChain+" -s "+ip+" -j DROP")
 
 
 ##  Returns if an IP Address is the iptables list
 def isbanned(ip):
-    Out=os.popen("iptables -L "+iptablesChain+" -n").read().replace(" ","#").replace("\n","")
+    salidaIptables=os.popen("iptables -L "+iptablesChain+" -n").read().replace(" ","#").replace("\n","")
     out=False
-    if ("#"+ip+"#" in Out): # we uses '#' to sure that we don't confuse with pieces of others ip addresses
+    if ("#"+ip+"#" in salidaIptables): # we uses '#' to sure that we don't confuse with pieces of others ip addresses
         out=True
     return out
 
@@ -182,7 +182,7 @@ def insert_to_whitelist(ip,hastacuando=time.time()):
 ## Function that add an IP address into a blacklist (and remove from list of suspected)
 def insert_to_blacklist(ip,cuando=time.time()):
     if ip not in [y for x in blacklist for y in x.split()]:
-        logging.info("BL: Detect attack from IP: '"+ip+"' (Banning address)")
+        logging.info("BL: Detected attack from IP: '"+ip+"' (Banning address)")
         blacklist[ip]=int(cuando);      # Insert the address and the time into the blacklist  
         ban(ip)
         create_blackfile()
@@ -194,7 +194,7 @@ def insert_to_blacklist(ip,cuando=time.time()):
 
 ## Function that is executed when an 'invalidPassword' is received
 def invalidPassword(evento):
-    logging.warning("Received wrong password for user "+evento['AccountID']+" from IP "+evento["RemoteAddress"]);
+    logging.warning("Received wrong password for user "+evento['AccountID']+" from IP "+evento["RemoteAddress"])
     # We check if the IP address is in the whitelist
     # If it isn't into the whitelist, we increment the counter until the number of tries will be greater that the 'maxNumTries' constant
     num = templist_counter(evento['RemoteAddress'],1.0)
@@ -202,9 +202,9 @@ def invalidPassword(evento):
         insert_to_blacklist(evento['RemoteAddress'])
 
 
-## Function that is executed when an 'ChallengeSent' is received
+## Function that is executed when a 'ChallengeSent' is received
 def inviteSend(evento):
-    logging.debug("Received invite user "+evento['AccountID']+" from IP "+evento["RemoteAddress"]);
+    logging.debug("Received invite user "+evento['AccountID']+" from IP "+evento["RemoteAddress"])
     # We check if the IP address is in the whitelist
     # If it isn't into the whitelist, we increment the counter until the number of tries will be greater that the 'maxNumTries' constant
     num = invitelist_counter(evento['RemoteAddress'],1.0)
@@ -212,9 +212,9 @@ def inviteSend(evento):
         insert_to_blacklist(evento['RemoteAddress'])
 
 
-## Function that is executed when an 'successfulAuth' is received
+## Function that is executed when a 'successfulAuth' is received
 def successfulAuth(evento):
-    logging.debug("Received right password for user "+evento['AccountID']+" from IP "+evento["RemoteAddress"]);
+    logging.debug("Received right password for user "+evento['AccountID']+" from IP "+evento["RemoteAddress"])
     # We insert the IP address into the whitelist
     insert_to_whitelist(evento['RemoteAddress'])
 
@@ -362,6 +362,29 @@ def load_blacklist_file():
                 cnt += 1
 
 
+def watch(fn, words):
+    fp = open(fn, 'r')
+    while True:
+        new = fp.readline()
+        # Once all lines are read this just returns ''
+        # until the file changes and a new line appears
+
+        if new:
+            for word in words:
+                if word in new:
+                    yield (word, new)
+        else:
+            time.sleep(0.5)
+
+
+def parseLog():
+    fn = '/var/log/asterisk/messages'
+    words = ['word']
+    for hit_word, hit_sentence in watch(fn, words):
+        print ("Found %r in line: %r" % (hit_word, hit_sentence))
+
+
+
 ## Main function
 def main():
     logging.info('-----------------------------------------------------')
@@ -372,6 +395,8 @@ def main():
     try:
         # We create an asyncronous thread that check the expiretime of the lists
         Thread(name='expireRecord', target = expire).start()
+        # We create an asyncronous thread that check the expiretime of the lists
+        Thread(name='parseLog', target = parseLog).start()
         # Run the manager loop
         manager.loop.run_forever()
     except KeyboardInterrupt:
