@@ -1,6 +1,7 @@
 # This list should include the IP addresses (only IP addresses, not hostnames) that we don't want banned.
 # Important note: If one of this IP addresses already is into the firewall, sipcheck will delete these rule to unban this IP.
 # Recommended for servers, providers, friends, testing, etc.
-
+31.211.185.235
+213.98.65.123
 10.10.10.10
 10.10.12.12

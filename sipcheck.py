@@ -25,6 +25,10 @@
     Authors: 
         Elio Rojano, Sergio Cotelo, Javier Vidal, Tomás Sahagún
     
+    Thanks to:
+        Jose Luis Verdeguer (testing)
+        Aitor Martin (fix and corrections)
+
     Email: 
         sipcheck@sinologic.net
 
@@ -33,10 +37,13 @@
 import time
 import io
 import os
+import re
+import sys
 import socket
 import logging
 import asyncio
 import configparser
+from pygtail import Pygtail
 from panoramisk import Manager
 from threading import Thread
 from threading import RLock
@@ -201,6 +208,13 @@ def invalidPassword(evento):
     if (num > maxNumTries):
         insert_to_blacklist(evento['RemoteAddress'])
 
+def inviteWithoutAuth(evento):
+    logging.warning("Received anonymous INVITE from IP "+evento["RemoteAddress"])
+    # We check if the IP address is in the whitelist
+    # If it isn't into the whitelist, we increment the counter until the number of tries will be greater that the 'maxNumTries' constant
+    num = templist_counter(evento['RemoteAddress'],1.0)
+    if (num > maxNumTries):
+        insert_to_blacklist(evento['RemoteAddress'])
 
 ## Function that is executed when a 'ChallengeSent' is received
 def inviteSend(evento):
@@ -362,27 +376,36 @@ def load_blacklist_file():
                 cnt += 1
 
 
-def watch(fn, words):
-    fp = open(fn, 'r')
+## System to parse the Asterisk message file searching INVITES without Authentication or trials of calls annoying.
+def tailLogFile(filename):
     while True:
-        new = fp.readline()
-        # Once all lines are read this just returns ''
-        # until the file changes and a new line appears
-
-        if new:
-            for word in words:
-                if word in new:
-                    yield (word, new)
-        else:
-            time.sleep(0.5)
-
+        for line in Pygtail(filename, offset_file="/tmp/prueba2.tmp", read_from_end=True):
+            yield line
+        time.sleep(1.0) 
 
 def parseLog():
-    fn = '/var/log/asterisk/messages'
-    words = ['word']
-    for hit_word, hit_sentence in watch(fn, words):
-        print ("Found %r in line: %r" % (hit_word, hit_sentence))
+    filename="/var/log/asterisk/messages"    
+    generator = tailLogFile(filename)
+    for line in generator:
+        analizeLog(line)
 
+
+def analizeLog(line):
+    # Maybe there are some future patters to detect others attacks
+    termsToSearch=["rejected because extension not found in context 'public'"]
+    for term in termsToSearch:
+        if (term in line):
+            detectedAttack=True
+            try:
+                IP = re.search(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}', line).group()
+            except:
+                IP = re.search(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}', line)
+            if (IP):
+                if (logLevel == "DEBUG"):
+                    print("Detected anonymous attack from %s" % str(IP))
+
+                event={'RemoteAddress':str(IP)}
+                inviteWithoutAuth(event)
 
 
 ## Main function
@@ -395,7 +418,7 @@ def main():
     try:
         # We create an asyncronous thread that check the expiretime of the lists
         Thread(name='expireRecord', target = expire).start()
-        # We create an asyncronous thread that check the expiretime of the lists
+        # Thread for parsing Asterisk message log file
         Thread(name='parseLog', target = parseLog).start()
         # Run the manager loop
         manager.loop.run_forever()
