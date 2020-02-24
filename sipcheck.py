@@ -52,7 +52,8 @@ lock = RLock()
 
 # We parser the config file
 config = configparser.ConfigParser()
-config.read('sipcheck.conf')
+dir = os.path.dirname(os.path.abspath(__file__))
+config.read(dir+'/sipcheck.conf')
 
 if ('manager' in config):
     managerHost = config['manager']['host']
@@ -85,7 +86,6 @@ else:
     WLExpireTime = 21600
     TLExpireTime = 3600
     iptablesChain = "INPUT"
-
 
 
 # We connect into a Asterisk Manager (Asterisk 11 or newer with Security permissions to read)
@@ -339,7 +339,8 @@ def callback(manager, message):
 
 ## Function that insert the addresses located in whitelist.txt file, into the whitelist without expiretime.
 def load_whitelist_file():  
-    wlfile="./whitelist.txt"
+    dir = os.path.dirname(os.path.abspath(__file__))
+    wlfile = dir+"/whitelist.txt"
     logging.debug("Reading "+wlfile+" to insert IP address into Whitelist table...")
     if (os.path.exists(wlfile)):
         with io.open(wlfile) as fp:
@@ -379,20 +380,31 @@ def load_blacklist_file():
 ## System to parse the Asterisk message file searching INVITES without Authentication or trials of calls annoying.
 def tailLogFile(filename):
     while True:
-        for line in Pygtail(filename, offset_file="/tmp/prueba2.tmp", read_from_end=True):
+        for line in Pygtail(filename, offset_file="/tmp/sipcheck.tmp", read_from_end=True):
             yield line
         time.sleep(1.0) 
 
 def parseLog():
-    filename="/var/log/asterisk/messages"    
-    generator = tailLogFile(filename)
-    for line in generator:
-        analizeLog(line)
+    if (config['log']['asterisklog']):
+        filename=config['log']['asterisklog']
+    else:
+        filename="/var/log/asterisk/messages"
 
+    if (config['log']['level'] == "DEBUG"):
+        logging.info("Checking %s ..." % filename)
+
+    if (os.path.isfile(filename)):
+        generator = tailLogFile(filename)
+        for line in generator:
+            analizeLog(line)
+    else:
+        logging.error("!! Asterisk logfile %s not found. Please, check this file in sipcheck.conf" % filename)
 
 def analizeLog(line):
     # Maybe there are some future patters to detect others attacks
-    termsToSearch=["rejected because extension not found in context 'public'"]
+    termsToSearch=[
+        "rejected because extension not found in context 'public'"
+        ]
     for term in termsToSearch:
         if (term in line):
             detectedAttack=True

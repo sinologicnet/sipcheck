@@ -7,20 +7,24 @@
 
 [manager]
 # IP or hostname where is the Asterisk (generally localhost)
-host: 127.0.0.1
-port: 5038
-username: mngrUser
-password: mngrP4ssW0rd
+host = 127.0.0.1
+port = 5038
+username = mngrUser
+password = mngrP4ssW0rd
 
 [log]
+# Asterisk log messages
+asterisklog = /var/log/asterisk/messages
+
 # One of this possible values: DEBUG, INFO, WARNING, ERROR, CRITICAL
 level = INFO        
+
 # Filename where 
 file = /var/log/sipcheck.log 
 
 [attacker]
 # Maximun number of wrong passwords before to insert into the blacklist
-maxNumTries = 5             
+maxNumTries = 5
 
 # Maximum number of INVITES without auth allowed before to consider it an attack
 maxNumInvites = 4
