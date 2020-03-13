@@ -272,6 +272,7 @@ def expireRecord():
     for t1 in listaABorrar:
         blacklist.pop(t1, None)
         unban(t1)       # Lo extraemos del firewall
+    create_blackfile()  # We update the blacklist file with actual records
 
     # We search the elements with the time expired.
     listaABorrar=[]
