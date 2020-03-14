@@ -76,3 +76,43 @@ systemctl start sipcheck
 tail -f /var/log/sipcheck.log
 ```
 
+## Example of use
+```log
+2020-03-14 19:25:51,309 INFO: -----------------------------------------------------
+2020-03-14 19:25:51,309 INFO: Starting SIPCheck 3 ...
+2020-03-14 19:25:51,309 INFO: + Added 185.53.88.49,1584140431 into blacklist again from the time: 1584140431
+2020-03-14 19:25:51,309 INFO: BL: Detected attack from IP: '185.53.88.49' (Banning address)
+2020-03-14 19:25:51,312 INFO: + Added 195.154.28.205,1584140431 into blacklist again from the time: 1584140431
+2020-03-14 19:25:51,312 INFO: BL: Detected attack from IP: '195.154.28.205' (Banning address)
+2020-03-14 19:25:51,313 INFO: + Added 92.246.85.154,1584140431 into blacklist again from the time: 1584140431
+2020-03-14 19:25:51,313 INFO: BL: Detected attack from IP: '92.246.85.154' (Banning address)
+2020-03-14 19:25:51,315 INFO: + Added 113.141.67.163,1584140431 into blacklist again from the time: 1584140431
+2020-03-14 19:25:51,315 INFO: BL: Detected attack from IP: '113.141.67.163' (Banning address)
+2020-03-14 19:25:51,317 INFO: + Added 192.227.132.19,1584140431 into blacklist again from the time: 1584140431
+2020-03-14 19:25:51,317 INFO: BL: Detected attack from IP: '192.227.132.19' (Banning address)
+2020-03-14 19:25:51,319 INFO: + Added 45.143.220.240,1584140431 into blacklist again from the time: 1584140431
+2020-03-14 19:25:51,319 INFO: BL: Detected attack from IP: '45.143.220.240' (Banning address)
+2020-03-14 19:25:51,321 INFO: + Added 45.143.221.59,1584200178 into blacklist again from the time: 1584200178
+2020-03-14 19:25:51,321 INFO: BL: Detected attack from IP: '45.143.221.59' (Banning address)
+2020-03-14 19:25:51,322 INFO: + Added 192.3.140.204,1584200178 into blacklist again from the time: 1584200178
+2020-03-14 19:25:51,322 INFO: BL: Detected attack from IP: '192.3.140.204' (Banning address)
+2020-03-14 19:25:51,324 INFO: + Added 185.221.135.138,1584200178 into blacklist again from the time: 1584200178
+2020-03-14 19:25:51,324 INFO: BL: Detected attack from IP: '185.221.135.138' (Banning address)
+2020-03-14 19:25:51,326 INFO: + Added 45.143.220.25,1584200178 into blacklist again from the time: 1584200178
+2020-03-14 19:25:51,326 INFO: BL: Detected attack from IP: '45.143.220.25' (Banning address)
+2020-03-14 19:25:51,331 INFO: + Added 10.10.10.10 into whitelist during one year
+2020-03-14 19:25:51,332 INFO: + Added 10.10.12.12 into whitelist during one year
+2020-03-14 19:25:51,341 INFO: protocol version: '5.0.0'
+2020-03-14 19:25:51,342 INFO: Sending awaiting actions
+2020-03-14 19:47:09,842 WARNING: Received anonymous INVITE from IP 91.212.38.210
+2020-03-14 20:47:14,776 INFO: TL: Expired time for 91.212.38.210
+2020-03-14 21:14:17,786 WARNING: Received wrong password for user Administrator from IP 45.234.152.38
+2020-03-14 21:50:28,963 WARNING: Received wrong password for user administrator from IP 45.234.152.38
+2020-03-14 22:07:02,806 WARNING: Received wrong password for user 10 from IP 45.234.152.38
+2020-03-14 22:14:18,490 INFO: TL: Expired time for 45.234.152.38
+2020-03-14 22:24:22,969 WARNING: Received anonymous INVITE from IP 45.143.220.220
+2020-03-14 22:43:22,100 WARNING: Received wrong password for user 11 from IP 45.234.152.38
+2020-03-14 23:19:42,874 WARNING: Received wrong password for user 100 from IP 45.234.152.38
+2020-03-14 23:24:26,489 INFO: TL: Expired time for 45.143.220.220
+2020-03-14 23:27:28,488 WARNING: Received anonymous INVITE from IP 45.143.220.214
+```
