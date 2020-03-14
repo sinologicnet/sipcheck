@@ -76,7 +76,7 @@ systemctl start sipcheck
 tail -f /var/log/sipcheck.log
 ```
 
-## Example of use
+## Real example of how it works...
 ```log
 2020-03-14 19:25:51,309 INFO: -----------------------------------------------------
 2020-03-14 19:25:51,309 INFO: Starting SIPCheck 3 ...
